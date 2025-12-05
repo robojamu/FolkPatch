@@ -96,7 +96,9 @@ import me.bmax.apatch.util.toggleModule
 import me.bmax.apatch.util.ui.LocalSnackbarHost
 import me.bmax.apatch.util.uninstallModule
 
+import com.ramcosta.composedestinations.generated.destinations.ApmBulkInstallScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.OnlineModuleScreenDestination
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Download
@@ -539,6 +541,14 @@ private fun TopBar(navigator: DestinationsNavigator, viewModel: APModuleViewMode
                 Icon(
                     imageVector = Icons.Filled.Download,
                     contentDescription = "Online Modules"
+                )
+            }
+            androidx.compose.material3.IconButton(onClick = {
+                navigator.navigate(ApmBulkInstallScreenDestination)
+            }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
+                    contentDescription = "Bulk Install"
                 )
             }
         }

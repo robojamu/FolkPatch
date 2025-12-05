@@ -339,4 +339,18 @@
 
     <string name="kpm_page_first_time_title">警告</string>
     <string name="kpm_page_first_time_message">核心模組是直接修改Boot的實作，它不像系統模組一樣有很好的救磚機制，出問題只能進入Fastboot去修復。建議先載入模組沒有問題再嵌入到Boot。如果是只能載入使用的模組，可以嘗試使用自動KPM模組載入功能。如果你不了解核心模組，請不要使用本功能！</string>
+
+    <!-- APM Bulk Install Strings -->
+    <string name="apm_bulk_install_title">系統模組批量安裝</string>
+    <string name="apm_bulk_install_list_title">模組列表</string>
+    <string name="apm_bulk_install_add">添加模組</string>
+    <string name="apm_bulk_install_empty">未添加模組</string>
+    <string name="apm_bulk_install_action">批量刷入</string>
+    <string name="apm_bulk_install_log_title">批量刷入日誌</string>
+    <string name="apm_bulk_install_log_start">開始批量刷入...</string>
+    <string name="apm_bulk_install_log_installing">正在刷入 %s</string>
+    <string name="apm_bulk_install_log_installed">模組 %s 刷入完成。</string>
+    <string name="apm_bulk_install_log_done">所有操作已完成。</string>
+    <string name="apm_bulk_install_first_use_text">這個功能允許你一次性刷入多個模組,屬於快速刷入,適合刷一些過程中沒有涉及按鍵操作的模組,涉及點按音量鍵等操作的請使用普通刷入</string>
+    <string name="apm_bulk_install_remove">移除</string>
 </resources>

@@ -307,4 +307,18 @@
 
     <string name="kpm_page_first_time_title">警告</string>
     <string name="kpm_page_first_time_message">カーネルモジュールはBootの実装を直接変更します。システムモジュールとは異なり、優れた救済措置がありません。問題が発生した場合、Fastbootに入って修復するしかありません。Bootに埋め込む前に、まずモジュールをロードして問題がないことを確認することをお勧めします。ロードして使用することしかできないモジュールの場合は、KPMモジュール自動ロード機能を試すことができます。カーネルモジュールについて理解していない場合は、この機能を使用しないでください！</string>
+
+    <!-- APM Bulk Install Strings -->
+    <string name="apm_bulk_install_title">APM一括インストール</string>
+    <string name="apm_bulk_install_list_title">モジュールリスト</string>
+    <string name="apm_bulk_install_add">モジュール追加</string>
+    <string name="apm_bulk_install_empty">モジュールが追加されていません</string>
+    <string name="apm_bulk_install_action">一括インストール</string>
+    <string name="apm_bulk_install_log_title">一括インストールログ</string>
+    <string name="apm_bulk_install_log_start">一括インストールを開始...</string>
+    <string name="apm_bulk_install_log_installing">%sをインストール中</string>
+    <string name="apm_bulk_install_log_installed">モジュール%sがインストールされました。</string>
+    <string name="apm_bulk_install_log_done">すべての操作が完了しました。</string>
+    <string name="apm_bulk_install_first_use_text">この機能では、複数のモジュールを一度にインストールできます。これはクイックインストール方法で、インストール中にキー操作を伴わないモジュールに適しています。音量キー操作が必要なモジュールは、標準インストールを使用してください。</string>
+    <string name="apm_bulk_install_remove">削除</string>
 </resources>

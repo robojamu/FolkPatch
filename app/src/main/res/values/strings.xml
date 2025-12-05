@@ -336,6 +336,21 @@
     <string name="kpm_autoload_json_mode">JSON Mode</string>
     <string name="kpm_autoload_add_kpm">Add KPM</string>
     <string name="kpm_autoload_remove_kpm">Remove</string>
+
+    <!-- APM Bulk Install Strings -->
+    <string name="apm_bulk_install_title">APM Bulk Install</string>
+    <string name="apm_bulk_install_list_title">Modules List</string>
+    <string name="apm_bulk_install_add">Add Modules</string>
+    <string name="apm_bulk_install_empty">No modules added</string>
+    <string name="apm_bulk_install_action">Bulk Install</string>
+    <string name="apm_bulk_install_log_title">Bulk Install Log</string>
+    <string name="apm_bulk_install_log_start">Starting bulk installation...</string>
+    <string name="apm_bulk_install_log_installing">Installing %s</string>
+    <string name="apm_bulk_install_log_installed">Module %s installed.</string>
+    <string name="apm_bulk_install_log_done">All operations completed.</string>
+    <string name="apm_bulk_install_first_use_text">This feature allows you to install multiple modules at once. It is a quick install method suitable for modules that do not involve key operations during installation. For modules requiring volume key interactions, please use the standard installation.</string>
+    <string name="apm_bulk_install_remove">Remove</string>
+
     <string name="kpm_autoload_kpm_list_title">KPM Modules</string>
     <string name="kpm_autoload_no_kpm_added">No KPM modules added</string>
     <string name="kpm_autoload_kpm_path">KPM Path</string>

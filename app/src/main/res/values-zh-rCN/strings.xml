@@ -337,6 +337,20 @@
     <string name="kpm_autoload_save_failed">配置保存失败</string>
     <string name="kpm_autoload_visual_mode">可视化模式</string>
     <string name="kpm_autoload_json_mode">JSON模式</string>
+
+    <!-- APM Bulk Install Strings -->
+    <string name="apm_bulk_install_title">系统模块批量安装</string>
+    <string name="apm_bulk_install_list_title">模块列表</string>
+    <string name="apm_bulk_install_add">添加模块</string>
+    <string name="apm_bulk_install_empty">未添加模块</string>
+    <string name="apm_bulk_install_action">批量刷入</string>
+    <string name="apm_bulk_install_log_title">批量刷入日志</string>
+    <string name="apm_bulk_install_log_start">开始批量刷入...</string>
+    <string name="apm_bulk_install_log_installing">正在刷入 %s</string>
+    <string name="apm_bulk_install_log_installed">模块 %s 刷入完成。</string>
+    <string name="apm_bulk_install_log_done">所有操作已完成。</string>
+    <string name="apm_bulk_install_first_use_text">这个功能允许你一次性刷入多个模块,属于快速刷入,适合刷一些过程中没有涉及按键操作的模块,涉及点按音量键等操作的请使用普通刷入</string>
+    <string name="apm_bulk_install_remove">移除</string>
     <string name="kpm_autoload_add_kpm">添加KPM</string>
     <string name="kpm_autoload_remove_kpm">删除</string>
     <string name="kpm_autoload_kpm_list_title">KPM模块列表</string>

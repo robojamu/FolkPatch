@@ -342,6 +342,20 @@
     <string name="kpm_autoload_first_time_confirm">Rozumiem</string>
     <string name="kpm_autoload_do_not_show_again">Nie pokazuj ponownie</string>
 
+    <!-- APM Bulk Install Strings -->
+    <string name="apm_bulk_install_title">Instalacja zbiorcza APM</string>
+    <string name="apm_bulk_install_list_title">Lista modułów</string>
+    <string name="apm_bulk_install_add">Dodaj moduły</string>
+    <string name="apm_bulk_install_empty">Brak dodanych modułów</string>
+    <string name="apm_bulk_install_action">Instalacja zbiorcza</string>
+    <string name="apm_bulk_install_log_title">Log instalacji zbiorczej</string>
+    <string name="apm_bulk_install_log_start">Rozpoczynanie instalacji zbiorczej...</string>
+    <string name="apm_bulk_install_log_installing">Instalowanie %s</string>
+    <string name="apm_bulk_install_log_installed">Moduł %s zainstalowany.</string>
+    <string name="apm_bulk_install_log_done">Wszystkie operacje zakończone.</string>
+    <string name="apm_bulk_install_first_use_text">Ta funkcja pozwala na zainstalowanie wielu modułów naraz. Jest to szybka metoda instalacji, odpowiednia dla modułów, które podczas instalacji nie wymagają operacji na klawiszach. Dla modułów wymagających interakcji z klawiszami głośności, proszę użyć standardowej instalacji.</string>
+    <string name="apm_bulk_install_remove">Usuń</string>
+
     <!-- Hide Settings Strings -->
     <string name="home_hide_su_path">Ukryj ścieżkę pliku wykonywalnego su</string>
     <string name="home_hide_kpatch_version">Ukryj wersję poprawki jądra</string>
