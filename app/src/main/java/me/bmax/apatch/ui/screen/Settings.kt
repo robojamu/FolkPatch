@@ -159,6 +159,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import me.bmax.apatch.util.UpdateChecker
 import me.bmax.apatch.ui.component.UpdateDialog
 import androidx.compose.material.icons.filled.MusicNote
+import me.bmax.apatch.ui.component.SearchAppBar
 
 @Composable
 fun formatTime(millis: Int): String {
@@ -190,6 +191,8 @@ fun SettingScreen(navigator: DestinationsNavigator) {
     val isOverlayFSAvailable by rememberSaveable {
         mutableStateOf(overlayFsAvailable())
     }
+    var searchText by rememberSaveable { mutableStateOf("") }
+
     if (kPatchReady && aPatchReady) {
         isGlobalNamespaceEnabled = isGlobalNamespaceEnabled()
         isLiteModeEnabled = isLiteModeEnabled()
@@ -200,13 +203,21 @@ fun SettingScreen(navigator: DestinationsNavigator) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            SearchAppBar(
                 title = { Text(stringResource(R.string.settings)) },
+                searchText = searchText,
+                onSearchTextChange = { searchText = it },
+                onClearClick = { searchText = "" }
             )
         },
         containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackBarHost) }
     ) { paddingValues ->
+
+        fun shouldShow(vararg texts: String?): Boolean {
+            if (searchText.isEmpty()) return true
+            return texts.any { it?.contains(searchText, ignoreCase = true) == true }
+        }
 
         val loadingDialog = rememberLoadingDialog()
         val clearKeyDialog = rememberConfirmDialog(
@@ -482,178 +493,346 @@ fun SettingScreen(navigator: DestinationsNavigator) {
         ) {
             
             // General Category
-            SettingsCategory(icon = Icons.Filled.Tune, title = stringResource(R.string.settings_category_general)) {
-                // Language
-                ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_app_language))
-                }, modifier = Modifier.clickable {
-                    showLanguageDialog.value = true
-                }, supportingContent = {
-                    Text(text = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage?.replaceFirstChar {
-                        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                    } ?: stringResource(id = R.string.system_default),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline)
-                }, leadingContent = { Icon(Icons.Filled.Translate, null) })
+            val generalTitle = stringResource(R.string.settings_category_general)
+            val matchGeneral = shouldShow(generalTitle)
+            
+            val languageTitle = stringResource(id = R.string.settings_app_language)
+            val languageValue = AppCompatDelegate.getApplicationLocales()[0]?.displayLanguage?.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            } ?: stringResource(id = R.string.system_default)
+            val showLanguage = matchGeneral || shouldShow(languageTitle, languageValue)
 
-                // Check Update
-                ListItem(
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    headlineContent = { Text(stringResource(id = R.string.settings_check_update)) },
-                    modifier = Modifier.clickable {
-                        scope.launch {
-                            loadingDialog.show()
-                            val hasUpdate = UpdateChecker.checkUpdate()
-                            loadingDialog.hide()
-                            if (hasUpdate) {
-                                showUpdateDialog.value = true
-                            } else {
-                                Toast.makeText(context, R.string.update_latest, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    },
-                    leadingContent = { Icon(Icons.Filled.Refresh, null) }
-                )
+            val updateTitle = stringResource(id = R.string.settings_check_update)
+            val showUpdate = matchGeneral || shouldShow(updateTitle)
 
-                // Auto Update Check
-                SwitchItem(
-                    icon = Icons.Filled.Update,
-                    title = stringResource(id = R.string.settings_auto_update_check),
-                    summary = stringResource(id = R.string.settings_auto_update_check_summary),
-                    checked = autoUpdateCheck,
-                    onCheckedChange = {
-                        prefs.edit { putBoolean("auto_update_check", it) }
-                        autoUpdateCheck = it
-                    })
+            val autoUpdateTitle = stringResource(id = R.string.settings_auto_update_check)
+            val autoUpdateSummary = stringResource(id = R.string.settings_auto_update_check_summary)
+            val showAutoUpdate = matchGeneral || shouldShow(autoUpdateTitle, autoUpdateSummary)
 
-                // Global Namespace
-                if (kPatchReady && aPatchReady) {
-                    SwitchItem(
-                        icon = Icons.Filled.Engineering,
-                        title = stringResource(id = R.string.settings_global_namespace_mode),
-                        summary = stringResource(id = R.string.settings_global_namespace_mode_summary),
-                        checked = isGlobalNamespaceEnabled,
-                        onCheckedChange = {
-                            setGlobalNamespaceEnabled(if (isGlobalNamespaceEnabled) "0" else "1")
-                            isGlobalNamespaceEnabled = it
-                        })
-                }
+            val globalNamespaceTitle = stringResource(id = R.string.settings_global_namespace_mode)
+            val globalNamespaceSummary = stringResource(id = R.string.settings_global_namespace_mode_summary)
+            val showGlobalNamespace = (kPatchReady && aPatchReady) && (matchGeneral || shouldShow(globalNamespaceTitle, globalNamespaceSummary))
 
-                // Lite Mode
-                if (kPatchReady && aPatchReady) {
-                    SwitchItem(
-                        icon = Icons.Filled.RemoveFromQueue,
-                        title = stringResource(id = R.string.settings_lite_mode),
-                        summary = stringResource(id = R.string.settings_lite_mode_mode_summary),
-                        checked = isLiteModeEnabled,
-                        onCheckedChange = {
-                            setLiteMode(it)
-                            isLiteModeEnabled = it
-                        })
-                }
+            val liteModeTitle = stringResource(id = R.string.settings_lite_mode)
+            val liteModeSummary = stringResource(id = R.string.settings_lite_mode_mode_summary)
+            val showLiteMode = (kPatchReady && aPatchReady) && (matchGeneral || shouldShow(liteModeTitle, liteModeSummary))
 
-                // OverlayFS
-                if (kPatchReady && aPatchReady && isOverlayFSAvailable) {
-                    SwitchItem(
-                        icon = Icons.Filled.FilePresent,
-                        title = stringResource(id = R.string.settings_force_overlayfs_mode),
-                        summary = stringResource(id = R.string.settings_force_overlayfs_mode_summary),
-                        checked = forceUsingOverlayFS,
-                        onCheckedChange = {
-                            setForceUsingOverlayFS(it)
-                            forceUsingOverlayFS = it
-                        })
-                }
+            val overlayFSTitle = stringResource(id = R.string.settings_force_overlayfs_mode)
+            val overlayFSSummary = stringResource(id = R.string.settings_force_overlayfs_mode_summary)
+            val showOverlayFS = (kPatchReady && aPatchReady && isOverlayFSAvailable) && (matchGeneral || shouldShow(overlayFSTitle, overlayFSSummary))
 
-                // Reset SU Path
-                if (kPatchReady) {
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        leadingContent = { Icon(Icons.Filled.Commit, stringResource(id = R.string.setting_reset_su_path)) },
-                        supportingContent = {},
-                        headlineContent = { Text(stringResource(id = R.string.setting_reset_su_path)) },
-                        modifier = Modifier.clickable { showResetSuPathDialog.value = true })
-                }
+            val resetSuPathTitle = stringResource(id = R.string.setting_reset_su_path)
+            val showResetSuPath = kPatchReady && (matchGeneral || shouldShow(resetSuPathTitle))
 
-                // App Title
-                ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_app_title))
-                }, modifier = Modifier.clickable {
-                    showAppTitleDialog.value = true
-                }, supportingContent = {
-                    val currentTitle = prefs.getString("app_title", "folkpatch")
-                    Text(
-                        text = stringResource(appTitleNameToString(currentTitle.toString())),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }, leadingContent = { Icon(Icons.Filled.Label, null) })
+            val appTitleTitle = stringResource(id = R.string.settings_app_title)
+            val currentAppTitleRaw = prefs.getString("app_title", "folkpatch")
+            val currentAppTitle = stringResource(appTitleNameToString(currentAppTitleRaw.toString()))
+            val showAppTitle = matchGeneral || shouldShow(appTitleTitle, currentAppTitle)
 
-                // Launcher Icon
-                ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_launcher_icon))
-                }, modifier = Modifier.clickable {
-                    showIconChooseDialog.value = true
-                }, supportingContent = {
-                    val currentIcon = prefs.getString("launcher_icon_variant", "default")
-                    Text(
-                        text = stringResource(iconNameToString(currentIcon.toString())),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }, leadingContent = { Icon(painterResource(id = R.drawable.settings), null) })
+            val launcherIconTitle = stringResource(id = R.string.settings_launcher_icon)
+            val currentIconRaw = prefs.getString("launcher_icon_variant", "default")
+            val currentIcon = stringResource(iconNameToString(currentIconRaw.toString()))
+            val showLauncherIcon = matchGeneral || shouldShow(launcherIconTitle, currentIcon)
 
-                // DPI
-                ListItem(
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    headlineContent = { Text(stringResource(id = R.string.settings_app_dpi)) },
-                    modifier = Modifier.clickable {
-                        showDpiDialog.value = true
-                    },
-                    supportingContent = {
-                        val currentDpi = me.bmax.apatch.util.DPIUtils.currentDpi
-                        val dpiText = if (currentDpi == -1) {
-                            stringResource(id = R.string.system_default)
-                        } else {
-                            "$currentDpi DPI"
-                        }
-                        Text(
-                            text = dpiText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
+            val dpiTitle = stringResource(id = R.string.settings_app_dpi)
+            val currentDpiVal = me.bmax.apatch.util.DPIUtils.currentDpi
+            val dpiValue = if (currentDpiVal == -1) stringResource(id = R.string.system_default) else "$currentDpiVal DPI"
+            val showDpi = matchGeneral || shouldShow(dpiTitle, dpiValue)
+
+            val logTitle = stringResource(id = R.string.send_log)
+            val showLog = matchGeneral || shouldShow(logTitle)
+
+            val showGeneralCategory = showLanguage || showUpdate || showAutoUpdate || showGlobalNamespace || showLiteMode || showOverlayFS || showResetSuPath || showAppTitle || showLauncherIcon || showDpi || showLog
+
+            if (showGeneralCategory) {
+                SettingsCategory(icon = Icons.Filled.Tune, title = generalTitle, isSearching = searchText.isNotEmpty()) {
+                    // Language
+                    if (showLanguage) {
+                        ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
+                            Text(text = languageTitle)
+                        }, modifier = Modifier.clickable {
+                            showLanguageDialog.value = true
+                        }, supportingContent = {
+                            Text(text = languageValue,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline)
+                        }, leadingContent = { Icon(Icons.Filled.Translate, null) })
+                    }
+
+                    // Check Update
+                    if (showUpdate) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            headlineContent = { Text(updateTitle) },
+                            modifier = Modifier.clickable {
+                                scope.launch {
+                                    loadingDialog.show()
+                                    val hasUpdate = UpdateChecker.checkUpdate()
+                                    loadingDialog.hide()
+                                    if (hasUpdate) {
+                                        showUpdateDialog.value = true
+                                    } else {
+                                        Toast.makeText(context, R.string.update_latest, Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            leadingContent = { Icon(Icons.Filled.Refresh, null) }
                         )
-                    },
-                    leadingContent = { Icon(Icons.Filled.AspectRatio, null) }
-                )
-                
-                // Log
-                ListItem(
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    leadingContent = { Icon(Icons.Filled.BugReport, stringResource(id = R.string.send_log)) },
-                    headlineContent = { Text(stringResource(id = R.string.send_log)) },
-                    modifier = Modifier.clickable { showLogBottomSheet = true }
-                )
+                    }
+
+                    // Auto Update Check
+                    if (showAutoUpdate) {
+                        SwitchItem(
+                            icon = Icons.Filled.Update,
+                            title = autoUpdateTitle,
+                            summary = autoUpdateSummary,
+                            checked = autoUpdateCheck,
+                            onCheckedChange = {
+                                prefs.edit { putBoolean("auto_update_check", it) }
+                                autoUpdateCheck = it
+                            })
+                    }
+
+                    // Global Namespace
+                    if (showGlobalNamespace) {
+                        SwitchItem(
+                            icon = Icons.Filled.Engineering,
+                            title = globalNamespaceTitle,
+                            summary = globalNamespaceSummary,
+                            checked = isGlobalNamespaceEnabled,
+                            onCheckedChange = {
+                                setGlobalNamespaceEnabled(if (isGlobalNamespaceEnabled) "0" else "1")
+                                isGlobalNamespaceEnabled = it
+                            })
+                    }
+
+                    // Lite Mode
+                    if (showLiteMode) {
+                        SwitchItem(
+                            icon = Icons.Filled.RemoveFromQueue,
+                            title = liteModeTitle,
+                            summary = liteModeSummary,
+                            checked = isLiteModeEnabled,
+                            onCheckedChange = {
+                                setLiteMode(it)
+                                isLiteModeEnabled = it
+                            })
+                    }
+
+                    // OverlayFS
+                    if (showOverlayFS) {
+                        SwitchItem(
+                            icon = Icons.Filled.FilePresent,
+                            title = overlayFSTitle,
+                            summary = overlayFSSummary,
+                            checked = forceUsingOverlayFS,
+                            onCheckedChange = {
+                                setForceUsingOverlayFS(it)
+                                forceUsingOverlayFS = it
+                            })
+                    }
+
+                    // Reset SU Path
+                    if (showResetSuPath) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            leadingContent = { Icon(Icons.Filled.Commit, resetSuPathTitle) },
+                            supportingContent = {},
+                            headlineContent = { Text(resetSuPathTitle) },
+                            modifier = Modifier.clickable { showResetSuPathDialog.value = true })
+                    }
+
+                    // App Title
+                    if (showAppTitle) {
+                        ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
+                            Text(text = appTitleTitle)
+                        }, modifier = Modifier.clickable {
+                            showAppTitleDialog.value = true
+                        }, supportingContent = {
+                            Text(
+                                text = currentAppTitle,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }, leadingContent = { Icon(Icons.Filled.Label, null) })
+                    }
+
+                    // Launcher Icon
+                    if (showLauncherIcon) {
+                        ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
+                            Text(text = launcherIconTitle)
+                        }, modifier = Modifier.clickable {
+                            showIconChooseDialog.value = true
+                        }, supportingContent = {
+                            Text(
+                                text = currentIcon,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }, leadingContent = { Icon(painterResource(id = R.drawable.settings), null) })
+                    }
+
+                    // DPI
+                    if (showDpi) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            headlineContent = { Text(dpiTitle) },
+                            modifier = Modifier.clickable {
+                                showDpiDialog.value = true
+                            },
+                            supportingContent = {
+                                Text(
+                                    text = dpiValue,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.outline
+                                )
+                            },
+                            leadingContent = { Icon(Icons.Filled.AspectRatio, null) }
+                        )
+                    }
+                    
+                    // Log
+                    if (showLog) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            leadingContent = { Icon(Icons.Filled.BugReport, logTitle) },
+                            headlineContent = { Text(logTitle) },
+                            modifier = Modifier.clickable { showLogBottomSheet = true }
+                        )
+                    }
+                }
             }
 
             // Appearance Category
-            SettingsCategory(icon = Icons.Filled.Palette, title = stringResource(R.string.settings_category_appearance)) {
-                // Night Mode
-                if (isNightModeSupported) {
-                    SwitchItem(
-                        icon = Icons.Filled.DarkMode,
-                        title = stringResource(id = R.string.settings_night_mode_follow_sys),
-                        summary = stringResource(id = R.string.settings_night_mode_follow_sys_summary),
-                        checked = nightModeFollowSys
-                    ) {
-                        prefs.edit { putBoolean("night_mode_follow_sys", it) }
-                        nightModeFollowSys = it
-                        refreshTheme.value = true
+            val appearanceTitle = stringResource(R.string.settings_category_appearance)
+            val matchAppearance = shouldShow(appearanceTitle)
+
+            // Night Mode
+            val nightModeFollowSysTitle = stringResource(id = R.string.settings_night_mode_follow_sys)
+            val nightModeFollowSysSummary = stringResource(id = R.string.settings_night_mode_follow_sys_summary)
+            val showNightModeFollowSys = isNightModeSupported && (matchAppearance || shouldShow(nightModeFollowSysTitle, nightModeFollowSysSummary))
+
+            val nightModeEnabledTitle = stringResource(id = R.string.settings_night_theme_enabled)
+            val showNightModeEnabled = isNightModeSupported && !nightModeFollowSys && (matchAppearance || shouldShow(nightModeEnabledTitle))
+
+            // Theme Color
+            val useSystemColorTitle = stringResource(id = R.string.settings_use_system_color_theme)
+            val useSystemColorSummary = stringResource(id = R.string.settings_use_system_color_theme_summary)
+            val showUseSystemColor = isDynamicColorSupport && (matchAppearance || shouldShow(useSystemColorTitle, useSystemColorSummary))
+
+            val customColorTitle = stringResource(id = R.string.settings_custom_color_theme)
+            val colorMode = prefs.getString("custom_color", "blue")
+            val customColorValue = stringResource(colorNameToString(colorMode.toString()))
+            val showCustomColor = (!isDynamicColorSupport || !useSystemDynamicColor) && (matchAppearance || shouldShow(customColorTitle, customColorValue))
+
+            // Home Layout
+            val homeLayoutTitle = stringResource(id = R.string.settings_home_layout_style)
+            val currentStyle = prefs.getString("home_layout_style", "focus")
+            val homeLayoutValue = stringResource(homeLayoutStyleToString(currentStyle.toString()))
+            val showHomeLayout = matchAppearance || shouldShow(homeLayoutTitle, homeLayoutValue)
+
+            // Grid Layout Background
+            val isKernelSuStyle = prefs.getString("home_layout_style", "kernelsu") == "kernelsu"
+            val gridBackgroundTitle = stringResource(id = R.string.settings_grid_working_card_background)
+            val gridBackgroundSummary = stringResource(id = R.string.settings_grid_working_card_background_summary)
+            val gridBackgroundEnabledText = stringResource(id = R.string.settings_grid_working_card_background_enabled)
+            val gridSelectImageText = stringResource(id = R.string.settings_select_background_image)
+            
+            val showGridBackgroundSwitch = isKernelSuStyle && (matchAppearance || shouldShow(gridBackgroundTitle, gridBackgroundSummary, gridBackgroundEnabledText, gridSelectImageText))
+            
+            val gridOpacityTitle = stringResource(id = R.string.settings_custom_background_opacity)
+            val showGridOpacity = isKernelSuStyle && BackgroundConfig.isGridWorkingCardBackgroundEnabled && (matchAppearance || shouldShow(gridOpacityTitle))
+            
+            val gridDimTitle = stringResource(id = R.string.settings_custom_background_dim)
+            val showGridDim = isKernelSuStyle && BackgroundConfig.isGridWorkingCardBackgroundEnabled && (matchAppearance || shouldShow(gridDimTitle))
+            
+            val gridSelectTitle = stringResource(id = R.string.settings_select_background_image)
+            val gridSelectedText = stringResource(id = R.string.settings_grid_working_card_background_selected)
+            val showGridPicker = isKernelSuStyle && BackgroundConfig.isGridWorkingCardBackgroundEnabled && (matchAppearance || shouldShow(gridSelectTitle, gridSelectedText))
+            
+            val gridClearTitle = stringResource(id = R.string.settings_clear_grid_working_card_background)
+            val showGridClear = isKernelSuStyle && BackgroundConfig.isGridWorkingCardBackgroundEnabled && (matchAppearance || shouldShow(gridClearTitle))
+
+            // Custom Background (Single/Multi)
+            val customBackgroundTitle = stringResource(id = R.string.settings_custom_background)
+            val customBackgroundSummary = stringResource(id = R.string.settings_custom_background_summary)
+            val customBackgroundEnabledText = stringResource(id = R.string.settings_custom_background_enabled)
+            val showCustomBackgroundSwitch = matchAppearance || shouldShow(customBackgroundTitle, customBackgroundSummary, customBackgroundEnabledText)
+            
+            val customOpacityTitle = stringResource(id = R.string.settings_custom_background_opacity)
+            val showCustomOpacity = BackgroundConfig.isCustomBackgroundEnabled && (matchAppearance || shouldShow(customOpacityTitle))
+            
+            val customDimTitle = stringResource(id = R.string.settings_custom_background_dim)
+            val showCustomDim = BackgroundConfig.isCustomBackgroundEnabled && (matchAppearance || shouldShow(customDimTitle))
+            
+            val videoBackgroundTitle = stringResource(id = R.string.settings_video_background)
+            val videoBackgroundSummary = stringResource(id = R.string.settings_video_background_summary)
+            val showVideoBackgroundSwitch = BackgroundConfig.isCustomBackgroundEnabled && (matchAppearance || shouldShow(videoBackgroundTitle, videoBackgroundSummary))
+            
+            val videoSelectTitle = stringResource(id = R.string.settings_select_video)
+            val videoSelectedText = stringResource(id = R.string.settings_video_selected)
+            val showVideoPicker = BackgroundConfig.isCustomBackgroundEnabled && BackgroundConfig.isVideoBackgroundEnabled && (matchAppearance || shouldShow(videoSelectTitle, videoSelectedText))
+            
+            val videoVolumeTitle = stringResource(id = R.string.settings_video_volume)
+            val showVideoVolume = BackgroundConfig.isCustomBackgroundEnabled && BackgroundConfig.isVideoBackgroundEnabled && (matchAppearance || shouldShow(videoVolumeTitle))
+            
+            val multiBackgroundTitle = stringResource(id = R.string.settings_multi_background_mode)
+            val multiBackgroundSummary = stringResource(id = R.string.settings_multi_background_mode_summary)
+            val showMultiBackgroundSwitch = BackgroundConfig.isCustomBackgroundEnabled && !BackgroundConfig.isVideoBackgroundEnabled && (matchAppearance || shouldShow(multiBackgroundTitle, multiBackgroundSummary))
+            
+            // Single Background Selector
+            val singleSelectTitle = stringResource(id = R.string.settings_select_background_image)
+            val singleSelectedText = stringResource(id = R.string.settings_background_selected)
+            val showSinglePicker = BackgroundConfig.isCustomBackgroundEnabled && !BackgroundConfig.isVideoBackgroundEnabled && !BackgroundConfig.isMultiBackgroundEnabled && (matchAppearance || shouldShow(singleSelectTitle, singleSelectedText))
+            
+            val singleClearTitle = stringResource(id = R.string.settings_clear_background)
+            val showSingleClear = BackgroundConfig.isCustomBackgroundEnabled && !BackgroundConfig.isVideoBackgroundEnabled && !BackgroundConfig.isMultiBackgroundEnabled && !BackgroundConfig.customBackgroundUri.isNullOrEmpty() && (matchAppearance || shouldShow(singleClearTitle))
+
+            // Custom Font
+            val customFontTitle = stringResource(id = R.string.settings_custom_font)
+            val customFontSummary = stringResource(id = R.string.settings_custom_font_summary)
+            val customFontEnabledText = stringResource(id = R.string.settings_custom_font_enabled)
+            val customFontSelectedText = stringResource(id = R.string.settings_font_selected)
+            val showCustomFontSwitch = matchAppearance || shouldShow(customFontTitle, customFontSummary, customFontEnabledText, customFontSelectedText)
+            
+            val selectFontTitle = stringResource(id = R.string.settings_select_font_file)
+            val showSelectFont = FontConfig.isCustomFontEnabled && (matchAppearance || shouldShow(selectFontTitle))
+            
+            val clearFontTitle = stringResource(id = R.string.settings_clear_font)
+            val showClearFont = FontConfig.isCustomFontEnabled && FontConfig.customFontFilename != null && (matchAppearance || shouldShow(clearFontTitle))
+
+            // Theme Store
+            val themeStoreTitle = stringResource(id = R.string.theme_store_title)
+            val showThemeStore = matchAppearance || shouldShow(themeStoreTitle)
+            
+            val saveThemeTitle = stringResource(id = R.string.settings_save_theme)
+            val showSaveTheme = matchAppearance || shouldShow(saveThemeTitle)
+            
+            val importThemeTitle = stringResource(id = R.string.settings_import_theme)
+            val showImportTheme = matchAppearance || shouldShow(importThemeTitle)
+
+            val showAppearanceCategory = showNightModeFollowSys || showNightModeEnabled || showUseSystemColor || showCustomColor || showHomeLayout || showGridBackgroundSwitch || showCustomBackgroundSwitch || showCustomFontSwitch || showThemeStore || showSaveTheme || showImportTheme
+
+            if (showAppearanceCategory) {
+                SettingsCategory(icon = Icons.Filled.Palette, title = appearanceTitle, isSearching = searchText.isNotEmpty()) {
+                    // Night Mode
+                    if (showNightModeFollowSys) {
+                        SwitchItem(
+                            icon = Icons.Filled.DarkMode,
+                            title = nightModeFollowSysTitle,
+                            summary = nightModeFollowSysSummary,
+                            checked = nightModeFollowSys
+                        ) {
+                            prefs.edit { putBoolean("night_mode_follow_sys", it) }
+                            nightModeFollowSys = it
+                            refreshTheme.value = true
+                        }
                     }
 
-                    if (!nightModeFollowSys) {
+                    if (showNightModeEnabled) {
                         SwitchItem(
                             icon = if (nightModeEnabled) Icons.Filled.DarkMode else Icons.Filled.VisibilityOff,
-                            title = stringResource(id = R.string.settings_night_theme_enabled),
+                            title = nightModeEnabledTitle,
                             summary = null,
                             checked = nightModeEnabled
                         ) {
@@ -662,146 +841,139 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             refreshTheme.value = true
                         }
                     }
-                }
 
-                // Theme Color
-                if (isDynamicColorSupport) {
-                    SwitchItem(
-                        icon = Icons.Filled.ColorLens,
-                        title = stringResource(id = R.string.settings_use_system_color_theme),
-                        summary = stringResource(id = R.string.settings_use_system_color_theme_summary),
-                        checked = useSystemDynamicColor
-                    ) {
-                        prefs.edit { putBoolean("use_system_color_theme", it) }
-                        useSystemDynamicColor = it
-                        refreshTheme.value = true
+                    // Theme Color
+                    if (showUseSystemColor) {
+                        SwitchItem(
+                            icon = Icons.Filled.ColorLens,
+                            title = useSystemColorTitle,
+                            summary = useSystemColorSummary,
+                            checked = useSystemDynamicColor
+                        ) {
+                            prefs.edit { putBoolean("use_system_color_theme", it) }
+                            useSystemDynamicColor = it
+                            refreshTheme.value = true
+                        }
                     }
 
-                    if (!useSystemDynamicColor) {
+                    if (showCustomColor) {
                         ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
-                            Text(text = stringResource(id = R.string.settings_custom_color_theme))
+                            Text(text = customColorTitle)
                         }, modifier = Modifier.clickable {
                             showThemeChooseDialog.value = true
                         }, supportingContent = {
-                            val colorMode = prefs.getString("custom_color", "blue")
                             Text(
-                                text = stringResource(colorNameToString(colorMode.toString())),
+                                text = customColorValue,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
                     }
-                } else {
-                    ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
-                        Text(text = stringResource(id = R.string.settings_custom_color_theme))
-                    }, modifier = Modifier.clickable {
-                        showThemeChooseDialog.value = true
-                    }, supportingContent = {
-                        val colorMode = prefs.getString("custom_color", "blue")
-                        Text(
-                            text = stringResource(colorNameToString(colorMode.toString())),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }, leadingContent = { Icon(Icons.Filled.FormatColorFill, null) })
-                }
 
-                // Home Layout Style
-                ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
-                    Text(text = stringResource(id = R.string.settings_home_layout_style))
-                }, modifier = Modifier.clickable {
-                    showHomeLayoutChooseDialog.value = true
-                }, supportingContent = {
-                    val currentStyle = prefs.getString("home_layout_style", "focus")
-                    Text(
-                        text = stringResource(homeLayoutStyleToString(currentStyle.toString())),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }, leadingContent = { Icon(Icons.Filled.Dashboard, null) })
+                    // Home Layout Style
+                    if (showHomeLayout) {
+                        ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent), headlineContent = {
+                            Text(text = homeLayoutTitle)
+                        }, modifier = Modifier.clickable {
+                            showHomeLayoutChooseDialog.value = true
+                        }, supportingContent = {
+                            Text(
+                                text = homeLayoutValue,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }, leadingContent = { Icon(Icons.Filled.Dashboard, null) })
+                    }
 
-                // Grid Layout Background
-                if (prefs.getString("home_layout_style", "kernelsu") == "kernelsu") {
-                    SwitchItem(
-                        icon = Icons.Filled.Image,
-                        title = stringResource(id = R.string.settings_grid_working_card_background),
-                        summary = if (BackgroundConfig.isGridWorkingCardBackgroundEnabled) {
-                            if (!BackgroundConfig.gridWorkingCardBackgroundUri.isNullOrEmpty()) {
-                                stringResource(id = R.string.settings_grid_working_card_background_enabled)
-                            } else {
-                                stringResource(id = R.string.settings_select_background_image)
-                            }
-                        } else {
-                            stringResource(id = R.string.settings_grid_working_card_background_summary)
-                        },
-                        checked = BackgroundConfig.isGridWorkingCardBackgroundEnabled,
-                        onCheckedChange = {
-                            BackgroundConfig.setGridWorkingCardBackgroundEnabledState(it)
-                            BackgroundConfig.save(context)
-                        }
-                    )
-
-                    if (BackgroundConfig.isGridWorkingCardBackgroundEnabled) {
-                        // Opacity
-                         ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(stringResource(id = R.string.settings_custom_background_opacity)) },
-                            supportingContent = {
-                                androidx.compose.material3.Slider(
-                                    value = BackgroundConfig.gridWorkingCardBackgroundOpacity,
-                                    onValueChange = { BackgroundConfig.setGridWorkingCardBackgroundOpacityValue(it) },
-                                    onValueChangeFinished = { BackgroundConfig.save(context) },
-                                    valueRange = 0f..1f,
-                                    colors = androidx.compose.material3.SliderDefaults.colors(
-                                        thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-                                        activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-                                    )
-                                )
-                            }
-                        )
-                        // Dim
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(stringResource(id = R.string.settings_custom_background_dim)) },
-                            supportingContent = {
-                                androidx.compose.material3.Slider(
-                                    value = BackgroundConfig.gridWorkingCardBackgroundDim,
-                                    onValueChange = { BackgroundConfig.setGridWorkingCardBackgroundDimValue(it) },
-                                    onValueChangeFinished = { BackgroundConfig.save(context) },
-                                    valueRange = 0f..1f,
-                                    colors = androidx.compose.material3.SliderDefaults.colors(
-                                        thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-                                        activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-                                    )
-                                )
-                            }
-                        )
-                        // Picker
-                         ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(text = stringResource(id = R.string.settings_select_background_image)) },
-                            supportingContent = {
+                    // Grid Layout Background
+                    if (showGridBackgroundSwitch) {
+                        SwitchItem(
+                            icon = Icons.Filled.Image,
+                            title = gridBackgroundTitle,
+                            summary = if (BackgroundConfig.isGridWorkingCardBackgroundEnabled) {
                                 if (!BackgroundConfig.gridWorkingCardBackgroundUri.isNullOrEmpty()) {
-                                    Text(
-                                        text = stringResource(id = R.string.settings_grid_working_card_background_selected),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
-                                }
-                            },
-                            leadingContent = { Icon(painterResource(id = R.drawable.ic_custom_background), null) },
-                            modifier = Modifier.clickable {
-                                if (PermissionUtils.hasExternalStoragePermission(context)) {
-                                    try {
-                                        pickGridImageLauncher.launch("image/*")
-                                    } catch (e: ActivityNotFoundException) {
-                                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                                    }
+                                    gridBackgroundEnabledText
                                 } else {
-                                    Toast.makeText(context, "请先授予存储权限才能选择背景图片", Toast.LENGTH_SHORT).show()
+                                    gridSelectImageText
                                 }
+                            } else {
+                                gridBackgroundSummary
+                            },
+                            checked = BackgroundConfig.isGridWorkingCardBackgroundEnabled,
+                            onCheckedChange = {
+                                BackgroundConfig.setGridWorkingCardBackgroundEnabledState(it)
+                                BackgroundConfig.save(context)
                             }
                         )
+                    }
+
+                    if (BackgroundConfig.isGridWorkingCardBackgroundEnabled && isKernelSuStyle) {
+                        // Opacity
+                         if (showGridOpacity) {
+                             ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(gridOpacityTitle) },
+                                supportingContent = {
+                                    androidx.compose.material3.Slider(
+                                        value = BackgroundConfig.gridWorkingCardBackgroundOpacity,
+                                        onValueChange = { BackgroundConfig.setGridWorkingCardBackgroundOpacityValue(it) },
+                                        onValueChangeFinished = { BackgroundConfig.save(context) },
+                                        valueRange = 0f..1f,
+                                        colors = androidx.compose.material3.SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                                            activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                        // Dim
+                        if (showGridDim) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(gridDimTitle) },
+                                supportingContent = {
+                                    androidx.compose.material3.Slider(
+                                        value = BackgroundConfig.gridWorkingCardBackgroundDim,
+                                        onValueChange = { BackgroundConfig.setGridWorkingCardBackgroundDimValue(it) },
+                                        onValueChangeFinished = { BackgroundConfig.save(context) },
+                                        valueRange = 0f..1f,
+                                        colors = androidx.compose.material3.SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                                            activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                        // Picker
+                         if (showGridPicker) {
+                             ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(text = gridSelectTitle) },
+                                supportingContent = {
+                                    if (!BackgroundConfig.gridWorkingCardBackgroundUri.isNullOrEmpty()) {
+                                        Text(
+                                            text = gridSelectedText,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.outline
+                                        )
+                                    }
+                                },
+                                leadingContent = { Icon(painterResource(id = R.drawable.ic_custom_background), null) },
+                                modifier = Modifier.clickable {
+                                    if (PermissionUtils.hasExternalStoragePermission(context)) {
+                                        try {
+                                            pickGridImageLauncher.launch("image/*")
+                                        } catch (e: ActivityNotFoundException) {
+                                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "请先授予存储权限才能选择背景图片", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            )
+                        }
                         // Clear
                         val clearGridBackgroundDialog = rememberConfirmDialog(
                             onConfirm = {
@@ -813,490 +985,607 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                 }
                             }
                         )
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(text = stringResource(id = R.string.settings_clear_grid_working_card_background)) },
-                            leadingContent = { Icon(painterResource(id = R.drawable.ic_clear_background), null) },
-                            modifier = Modifier.clickable {
-                                clearGridBackgroundDialog.showConfirm(
-                                    title = context.getString(R.string.settings_clear_grid_working_card_background),
-                                    content = context.getString(R.string.settings_clear_grid_working_card_background_confirm),
-                                    markdown = false
-                                )
-                            }
-                        )
-                    }
-                }
-
-                // Custom Background (Single/Multi)
-                SwitchItem(
-                    icon = Icons.Filled.FormatColorFill,
-                    title = stringResource(id = R.string.settings_custom_background),
-                    summary = if (BackgroundConfig.isCustomBackgroundEnabled) {
-                        if (!BackgroundConfig.customBackgroundUri.isNullOrEmpty()) {
-                            stringResource(id = R.string.settings_custom_background_enabled)
-                        } else {
-                            stringResource(id = R.string.settings_select_background_image)
-                        }
-                    } else {
-                        stringResource(id = R.string.settings_custom_background_summary)
-                    },
-                    checked = BackgroundConfig.isCustomBackgroundEnabled
-                ) {
-                    BackgroundConfig.setCustomBackgroundEnabledState(it)
-                    BackgroundConfig.save(context)
-                    refreshTheme.value = true
-                }
-
-                if (BackgroundConfig.isCustomBackgroundEnabled) {
-                    // Sliders
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        headlineContent = { Text(stringResource(id = R.string.settings_custom_background_opacity)) },
-                        supportingContent = {
-                            androidx.compose.material3.Slider(
-                                value = BackgroundConfig.customBackgroundOpacity,
-                                onValueChange = { BackgroundConfig.setCustomBackgroundOpacityValue(it) },
-                                onValueChangeFinished = { BackgroundConfig.save(context) },
-                                valueRange = 0f..1f,
-                                colors = androidx.compose.material3.SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-                                    activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-                                )
-                            )
-                        }
-                    )
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        headlineContent = { Text(stringResource(id = R.string.settings_custom_background_dim)) },
-                        supportingContent = {
-                            androidx.compose.material3.Slider(
-                                value = BackgroundConfig.customBackgroundDim,
-                                onValueChange = { BackgroundConfig.setCustomBackgroundDimValue(it) },
-                                onValueChangeFinished = { BackgroundConfig.save(context) },
-                                valueRange = 0f..1f,
-                                colors = androidx.compose.material3.SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-                                    activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-                                )
-                            )
-                        }
-                    )
-
-                    // Video Background
-                    SwitchItem(
-                        icon = Icons.Filled.PlayArrow,
-                        title = stringResource(id = R.string.settings_video_background),
-                        summary = stringResource(id = R.string.settings_video_background_summary),
-                        checked = BackgroundConfig.isVideoBackgroundEnabled
-                    ) {
-                        BackgroundConfig.setVideoBackgroundEnabledState(it)
-                        BackgroundConfig.save(context)
-                        refreshTheme.value = true
-                    }
-
-                    if (BackgroundConfig.isVideoBackgroundEnabled) {
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(text = stringResource(id = R.string.settings_select_video)) },
-                            supportingContent = {
-                                if (!BackgroundConfig.videoBackgroundUri.isNullOrEmpty()) {
-                                    Text(
-                                        text = stringResource(id = R.string.settings_video_selected),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.outline
+                        if (showGridClear) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(text = gridClearTitle) },
+                                leadingContent = { Icon(painterResource(id = R.drawable.ic_clear_background), null) },
+                                modifier = Modifier.clickable {
+                                    clearGridBackgroundDialog.showConfirm(
+                                        title = context.getString(R.string.settings_clear_grid_working_card_background),
+                                        content = context.getString(R.string.settings_clear_grid_working_card_background_confirm),
+                                        markdown = false
                                     )
                                 }
-                            },
-                            leadingContent = { Icon(Icons.Filled.PlayArrow, null) },
-                            modifier = Modifier.clickable {
-                                if (PermissionUtils.hasExternalStoragePermission(context)) {
-                                    try {
-                                        pickVideoLauncher.launch("video/*")
-                                    } catch (e: ActivityNotFoundException) {
-                                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    Toast.makeText(context, "请先授予存储权限才能选择背景视频", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                        
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(stringResource(id = R.string.settings_video_volume)) },
-                            supportingContent = {
-                                androidx.compose.material3.Slider(
-                                    value = BackgroundConfig.videoVolume,
-                                    onValueChange = { BackgroundConfig.setVideoVolumeValue(it) },
-                                    onValueChangeFinished = { BackgroundConfig.save(context) },
-                                    valueRange = 0f..1f,
-                                    colors = androidx.compose.material3.SliderDefaults.colors(
-                                        thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-                                        activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-                                    )
-                                )
-                            },
-                            leadingContent = { Icon(Icons.Filled.VolumeUp, null) }
-                        )
+                            )
+                        }
                     }
 
-                    if (!BackgroundConfig.isVideoBackgroundEnabled) {
-                        // Multi-background Mode
+                    // Custom Background (Single/Multi)
+                    if (showCustomBackgroundSwitch) {
                         SwitchItem(
-                            icon = Icons.Filled.Dashboard,
-                            title = stringResource(id = R.string.settings_multi_background_mode),
-                            summary = stringResource(id = R.string.settings_multi_background_mode_summary),
-                            checked = BackgroundConfig.isMultiBackgroundEnabled
+                            icon = Icons.Filled.FormatColorFill,
+                            title = customBackgroundTitle,
+                            summary = if (BackgroundConfig.isCustomBackgroundEnabled) {
+                                if (!BackgroundConfig.customBackgroundUri.isNullOrEmpty()) {
+                                    customBackgroundEnabledText
+                                } else {
+                                    gridSelectImageText
+                                }
+                            } else {
+                                customBackgroundSummary
+                            },
+                            checked = BackgroundConfig.isCustomBackgroundEnabled
                         ) {
-                            BackgroundConfig.setMultiBackgroundEnabledState(it)
+                            BackgroundConfig.setCustomBackgroundEnabledState(it)
                             BackgroundConfig.save(context)
                             refreshTheme.value = true
                         }
-                        
-                        if (BackgroundConfig.isMultiBackgroundEnabled) {
-                            // Multi selectors
-                            val items = listOf(
-                                Triple(R.string.settings_select_home_background, "home", BackgroundConfig.homeBackgroundUri),
-                                Triple(R.string.settings_select_kernel_background, "kernel", BackgroundConfig.kernelBackgroundUri),
-                                Triple(R.string.settings_select_superuser_background, "superuser", BackgroundConfig.superuserBackgroundUri),
-                                Triple(R.string.settings_select_system_module_background, "system", BackgroundConfig.systemModuleBackgroundUri),
-                                Triple(R.string.settings_select_settings_background, "settings", BackgroundConfig.settingsBackgroundUri)
+                    }
+
+                    if (BackgroundConfig.isCustomBackgroundEnabled) {
+                        // Sliders
+                        if (showCustomOpacity) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(customOpacityTitle) },
+                                supportingContent = {
+                                    androidx.compose.material3.Slider(
+                                        value = BackgroundConfig.customBackgroundOpacity,
+                                        onValueChange = { BackgroundConfig.setCustomBackgroundOpacityValue(it) },
+                                        onValueChangeFinished = { BackgroundConfig.save(context) },
+                                        valueRange = 0f..1f,
+                                        colors = androidx.compose.material3.SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                                            activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                                        )
+                                    )
+                                }
                             )
-                            items.forEach { (titleRes, type, uri) ->
+                        }
+                        if (showCustomDim) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(customDimTitle) },
+                                supportingContent = {
+                                    androidx.compose.material3.Slider(
+                                        value = BackgroundConfig.customBackgroundDim,
+                                        onValueChange = { BackgroundConfig.setCustomBackgroundDimValue(it) },
+                                        onValueChangeFinished = { BackgroundConfig.save(context) },
+                                        valueRange = 0f..1f,
+                                        colors = androidx.compose.material3.SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                                            activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                                        )
+                                    )
+                                }
+                            )
+                        }
+
+                        // Video Background
+                        if (showVideoBackgroundSwitch) {
+                            SwitchItem(
+                                icon = Icons.Filled.PlayArrow,
+                                title = videoBackgroundTitle,
+                                summary = videoBackgroundSummary,
+                                checked = BackgroundConfig.isVideoBackgroundEnabled
+                            ) {
+                                BackgroundConfig.setVideoBackgroundEnabledState(it)
+                                BackgroundConfig.save(context)
+                                refreshTheme.value = true
+                            }
+                        }
+
+                        if (BackgroundConfig.isVideoBackgroundEnabled) {
+                            if (showVideoPicker) {
                                 ListItem(
                                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                                    headlineContent = { Text(text = stringResource(id = titleRes)) },
+                                    headlineContent = { Text(text = videoSelectTitle) },
                                     supportingContent = {
-                                        if (!uri.isNullOrEmpty()) {
+                                        if (!BackgroundConfig.videoBackgroundUri.isNullOrEmpty()) {
                                             Text(
-                                                text = stringResource(id = R.string.settings_background_selected),
+                                                text = videoSelectedText,
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = MaterialTheme.colorScheme.outline
                                             )
                                         }
                                     },
-                                    leadingContent = { Icon(painterResource(id = R.drawable.ic_custom_background), null) },
+                                    leadingContent = { Icon(Icons.Filled.PlayArrow, null) },
                                     modifier = Modifier.clickable {
-                                        if (PermissionUtils.hasExternalStoragePermission(context) && 
-                                            PermissionUtils.hasWriteExternalStoragePermission(context)) {
-                                            pickingType = type
+                                        if (PermissionUtils.hasExternalStoragePermission(context)) {
                                             try {
-                                                pickImageLauncher.launch("image/*")
+                                                pickVideoLauncher.launch("video/*")
                                             } catch (e: ActivityNotFoundException) {
                                                 Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                                             }
                                         } else {
-                                            Toast.makeText(context, "请先授予存储权限才能选择背景图片", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "请先授予存储权限才能选择背景视频", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 )
                             }
-                        } else {
-                            // Single Background Selector
-                            ListItem(
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                                headlineContent = { Text(text = stringResource(id = R.string.settings_select_background_image)) },
-                                supportingContent = {
-                                    if (!BackgroundConfig.customBackgroundUri.isNullOrEmpty()) {
-                                        Text(
-                                            text = stringResource(id = R.string.settings_background_selected),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.outline
-                                        )
-                                    }
-                                },
-                                leadingContent = { Icon(painterResource(id = R.drawable.ic_custom_background), null) },
-                                modifier = Modifier.clickable {
-                                    if (PermissionUtils.hasExternalStoragePermission(context) && 
-                                        PermissionUtils.hasWriteExternalStoragePermission(context)) {
-                                        pickingType = "default"
-                                        try {
-                                            pickImageLauncher.launch("image/*")
-                                        } catch (e: ActivityNotFoundException) {
-                                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                                        }
-                                    } else {
-                                        Toast.makeText(context, "请先授予存储权限才能选择背景图片", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            )
-                            // Clear button (Single mode only)
-                            if (!BackgroundConfig.customBackgroundUri.isNullOrEmpty()) {
-                                val clearBackgroundDialog = rememberConfirmDialog(
-                                    onConfirm = {
-                                        scope.launch {
-                                            loadingDialog.show()
-                                            BackgroundManager.clearCustomBackground(context)
-                                            loadingDialog.hide()
-                                            snackBarHost.showSnackbar(message = context.getString(R.string.settings_background_image_cleared))
-                                            refreshTheme.value = true
-                                        }
-                                    }
-                                )
-                                val clearTitle = stringResource(id = R.string.settings_clear_background)
-                                val clearConfirm = stringResource(id = R.string.settings_clear_background_confirm)
+                            
+                            if (showVideoVolume) {
                                 ListItem(
                                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                                    headlineContent = { Text(text = clearTitle) },
-                                    leadingContent = { Icon(painterResource(id = R.drawable.ic_clear_background), null) },
+                                    headlineContent = { Text(videoVolumeTitle) },
+                                    supportingContent = {
+                                        androidx.compose.material3.Slider(
+                                            value = BackgroundConfig.videoVolume,
+                                            onValueChange = { BackgroundConfig.setVideoVolumeValue(it) },
+                                            onValueChangeFinished = { BackgroundConfig.save(context) },
+                                            valueRange = 0f..1f,
+                                            colors = androidx.compose.material3.SliderDefaults.colors(
+                                                thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                                                activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                                            )
+                                        )
+                                    },
+                                    leadingContent = { Icon(Icons.Filled.VolumeUp, null) }
+                                )
+                            }
+                        }
+
+                        if (!BackgroundConfig.isVideoBackgroundEnabled) {
+                            // Multi-background Mode
+                            if (showMultiBackgroundSwitch) {
+                                SwitchItem(
+                                    icon = Icons.Filled.Dashboard,
+                                    title = multiBackgroundTitle,
+                                    summary = multiBackgroundSummary,
+                                    checked = BackgroundConfig.isMultiBackgroundEnabled
+                                ) {
+                                    BackgroundConfig.setMultiBackgroundEnabledState(it)
+                                    BackgroundConfig.save(context)
+                                    refreshTheme.value = true
+                                }
+                            }
+                            
+                            if (BackgroundConfig.isMultiBackgroundEnabled) {
+                                // Multi selectors
+                                val items = listOf(
+                                    Triple(R.string.settings_select_home_background, "home", BackgroundConfig.homeBackgroundUri),
+                                    Triple(R.string.settings_select_kernel_background, "kernel", BackgroundConfig.kernelBackgroundUri),
+                                    Triple(R.string.settings_select_superuser_background, "superuser", BackgroundConfig.superuserBackgroundUri),
+                                    Triple(R.string.settings_select_system_module_background, "system", BackgroundConfig.systemModuleBackgroundUri),
+                                    Triple(R.string.settings_select_settings_background, "settings", BackgroundConfig.settingsBackgroundUri)
+                                )
+                                items.forEach { (titleRes, type, uri) ->
+                                    val title = stringResource(id = titleRes)
+                                    if (matchAppearance || shouldShow(title)) {
+                                        ListItem(
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                            headlineContent = { Text(text = title) },
+                                            supportingContent = {
+                                                if (!uri.isNullOrEmpty()) {
+                                                    Text(
+                                                        text = stringResource(id = R.string.settings_background_selected),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = MaterialTheme.colorScheme.outline
+                                                    )
+                                                }
+                                            },
+                                            leadingContent = { Icon(painterResource(id = R.drawable.ic_custom_background), null) },
+                                            modifier = Modifier.clickable {
+                                                if (PermissionUtils.hasExternalStoragePermission(context) && 
+                                                    PermissionUtils.hasWriteExternalStoragePermission(context)) {
+                                                    pickingType = type
+                                                    try {
+                                                        pickImageLauncher.launch("image/*")
+                                                    } catch (e: ActivityNotFoundException) {
+                                                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                                                    }
+                                                } else {
+                                                    Toast.makeText(context, "请先授予存储权限才能选择背景图片", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Single Background Selector
+                                if (showSinglePicker) {
+                                    ListItem(
+                                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                        headlineContent = { Text(text = singleSelectTitle) },
+                                        supportingContent = {
+                                            if (!BackgroundConfig.customBackgroundUri.isNullOrEmpty()) {
+                                                Text(
+                                                    text = singleSelectedText,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.outline
+                                                )
+                                            }
+                                        },
+                                        leadingContent = { Icon(painterResource(id = R.drawable.ic_custom_background), null) },
+                                        modifier = Modifier.clickable {
+                                            if (PermissionUtils.hasExternalStoragePermission(context) && 
+                                                PermissionUtils.hasWriteExternalStoragePermission(context)) {
+                                                pickingType = "default"
+                                                try {
+                                                    pickImageLauncher.launch("image/*")
+                                                } catch (e: ActivityNotFoundException) {
+                                                    Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                Toast.makeText(context, "请先授予存储权限才能选择背景图片", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    )
+                                }
+                                // Clear button (Single mode only)
+                                if (!BackgroundConfig.customBackgroundUri.isNullOrEmpty()) {
+                                    val clearBackgroundDialog = rememberConfirmDialog(
+                                        onConfirm = {
+                                            scope.launch {
+                                                loadingDialog.show()
+                                                BackgroundManager.clearCustomBackground(context)
+                                                loadingDialog.hide()
+                                                snackBarHost.showSnackbar(message = context.getString(R.string.settings_background_image_cleared))
+                                                refreshTheme.value = true
+                                            }
+                                        }
+                                    )
+                                    if (showSingleClear) {
+                                        ListItem(
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                            headlineContent = { Text(text = singleClearTitle) },
+                                            leadingContent = { Icon(painterResource(id = R.drawable.ic_clear_background), null) },
+                                            modifier = Modifier.clickable {
+                                                clearBackgroundDialog.showConfirm(title = singleClearTitle, content = context.getString(R.string.settings_clear_background_confirm), markdown = false)
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Custom Font
+                    if (showCustomFontSwitch) {
+                        SwitchItem(
+                            icon = Icons.Filled.TextFields,
+                            title = customFontTitle,
+                            summary = if (FontConfig.isCustomFontEnabled) {
+                                if (FontConfig.customFontFilename != null) {
+                                    customFontSelectedText
+                                } else {
+                                    customFontEnabledText
+                                }
+                            } else {
+                                customFontSummary
+                            },
+                            checked = FontConfig.isCustomFontEnabled
+                        ) {
+                            FontConfig.setCustomFontEnabledState(it)
+                            FontConfig.save(context)
+                            refreshTheme.value = true
+                        }
+                    }
+                    
+                    if (FontConfig.isCustomFontEnabled) {
+                        if (showSelectFont) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(text = selectFontTitle) },
+                                supportingContent = {
+                                    Text(
+                                        text = stringResource(id = R.string.settings_font_select_hint),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.outline
+                                    )
+                                },
+                                leadingContent = { Icon(Icons.Filled.TextFields, null) },
+                                modifier = Modifier.clickable {
+                                    try {
+                                        pickFontLauncher.launch("*/*")
+                                    } catch (e: ActivityNotFoundException) {
+                                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            )
+                        }
+                        
+                        if (FontConfig.customFontFilename != null) {
+                            val clearFontDialog = rememberConfirmDialog(
+                                onConfirm = {
+                                    FontConfig.clearFont(context)
+                                    refreshTheme.value = true
+                                    scope.launch {
+                                        snackBarHost.showSnackbar(message = context.getString(R.string.settings_font_cleared))
+                                    }
+                                }
+                            )
+                            if (showClearFont) {
+                                ListItem(
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                    headlineContent = { Text(text = clearFontTitle) },
+                                    leadingContent = { Icon(Icons.Filled.RemoveFromQueue, null) },
                                     modifier = Modifier.clickable {
-                                        clearBackgroundDialog.showConfirm(title = clearTitle, content = clearConfirm, markdown = false)
+                                        clearFontDialog.showConfirm(
+                                            title = clearFontTitle,
+                                            content = context.getString(R.string.settings_clear_font_confirm)
+                                        )
                                     }
                                 )
                             }
                         }
                     }
-                }
 
-                // Custom Font
-                SwitchItem(
-                    icon = Icons.Filled.TextFields,
-                    title = stringResource(id = R.string.settings_custom_font),
-                    summary = if (FontConfig.isCustomFontEnabled) {
-                        if (FontConfig.customFontFilename != null) {
-                            stringResource(id = R.string.settings_font_selected)
-                        } else {
-                            stringResource(id = R.string.settings_custom_font_enabled)
-                        }
-                    } else {
-                        stringResource(id = R.string.settings_custom_font_summary)
-                    },
-                    checked = FontConfig.isCustomFontEnabled
-                ) {
-                    FontConfig.setCustomFontEnabledState(it)
-                    FontConfig.save(context)
-                    refreshTheme.value = true
-                }
-                
-                if (FontConfig.isCustomFontEnabled) {
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        headlineContent = { Text(text = stringResource(id = R.string.settings_select_font_file)) },
-                        supportingContent = {
-                            Text(
-                                text = stringResource(id = R.string.settings_font_select_hint),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                        },
-                        leadingContent = { Icon(Icons.Filled.TextFields, null) },
-                        modifier = Modifier.clickable {
-                            try {
-                                pickFontLauncher.launch("*/*")
-                            } catch (e: ActivityNotFoundException) {
-                                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-                    
-                    if (FontConfig.customFontFilename != null) {
-                        val clearFontDialog = rememberConfirmDialog(
-                            onConfirm = {
-                                FontConfig.clearFont(context)
-                                refreshTheme.value = true
-                                scope.launch {
-                                    snackBarHost.showSnackbar(message = context.getString(R.string.settings_font_cleared))
-                                }
-                            }
-                        )
+                    // Theme Store/Import/Export
+                    if (showThemeStore) {
                         ListItem(
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(text = stringResource(id = R.string.settings_clear_font)) },
-                            leadingContent = { Icon(Icons.Filled.RemoveFromQueue, null) },
+                            headlineContent = { Text(text = themeStoreTitle) },
+                            modifier = Modifier.clickable { navigator.navigate(ThemeStoreScreenDestination) },
+                            leadingContent = { Icon(Icons.Filled.ShoppingCart, null) }
+                        )
+                    }
+                    
+                    if (showSaveTheme) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            headlineContent = { Text(text = saveThemeTitle) },
+                            modifier = Modifier.clickable { showExportDialog.value = true },
+                            leadingContent = { Icon(Icons.Filled.Save, null) }
+                        )
+                    }
+                    
+                    if (showImportTheme) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            headlineContent = { Text(text = importThemeTitle) },
                             modifier = Modifier.clickable {
-                                clearFontDialog.showConfirm(
-                                    title = context.getString(R.string.settings_clear_font),
-                                    content = context.getString(R.string.settings_clear_font_confirm)
-                                )
-                            }
+                                showFilePicker.value = true
+                            },
+                            leadingContent = { Icon(Icons.Filled.Folder, null) }
                         )
                     }
                 }
-
-                // Background Music (Removed from here)
-                
-                // Theme Store/Import/Export
-                ListItem(
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    headlineContent = { Text(text = stringResource(id = R.string.theme_store_title)) },
-                    modifier = Modifier.clickable { navigator.navigate(ThemeStoreScreenDestination) },
-                    leadingContent = { Icon(Icons.Filled.ShoppingCart, null) }
-                )
-                
-                ListItem(
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    headlineContent = { Text(text = stringResource(id = R.string.settings_save_theme)) },
-                    modifier = Modifier.clickable { showExportDialog.value = true },
-                    leadingContent = { Icon(Icons.Filled.Save, null) }
-                )
-                
-                ListItem(
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    headlineContent = { Text(text = stringResource(id = R.string.settings_import_theme)) },
-                    modifier = Modifier.clickable {
-                        showFilePicker.value = true
-                    },
-                    leadingContent = { Icon(Icons.Filled.Folder, null) }
-                )
             }
             
             // Multimedia (Moved)
 
 
             // Behavior Category
-            SettingsCategory(icon = Icons.Filled.TouchApp, title = stringResource(R.string.settings_category_behavior)) {
-                if (aPatchReady) {
+            val behaviorTitle = stringResource(R.string.settings_category_behavior)
+            val matchBehavior = shouldShow(behaviorTitle)
+
+            val webDebuggingTitle = stringResource(id = R.string.enable_web_debugging)
+            val webDebuggingSummary = stringResource(id = R.string.enable_web_debugging_summary)
+            val showWebDebugging = aPatchReady && (matchBehavior || shouldShow(webDebuggingTitle, webDebuggingSummary))
+
+            val installConfirmTitle = stringResource(id = R.string.settings_apm_install_confirm)
+            val installConfirmSummary = stringResource(id = R.string.settings_apm_install_confirm_summary)
+            val showInstallConfirm = aPatchReady && (matchBehavior || shouldShow(installConfirmTitle, installConfirmSummary))
+
+            val disableModulesTitle = stringResource(id = R.string.settings_show_disable_all_modules)
+            val disableModulesSummary = stringResource(id = R.string.settings_show_disable_all_modules_summary)
+            val showDisableModules = aPatchReady && (matchBehavior || shouldShow(disableModulesTitle, disableModulesSummary))
+
+            val stayOnPageTitle = stringResource(id = R.string.settings_apm_stay_on_page)
+            val stayOnPageSummary = stringResource(id = R.string.settings_apm_stay_on_page_summary)
+            val showStayOnPage = aPatchReady && (matchBehavior || shouldShow(stayOnPageTitle, stayOnPageSummary))
+
+            val hideApatchTitle = stringResource(id = R.string.settings_hide_apatch_card)
+            val hideApatchSummary = stringResource(id = R.string.settings_hide_apatch_card_summary)
+            val showHideApatch = matchBehavior || shouldShow(hideApatchTitle, hideApatchSummary)
+
+            val hideSuTitle = stringResource(id = R.string.home_hide_su_path)
+            val hideSuSummary = stringResource(id = R.string.home_hide_su_path_summary)
+            val showHideSu = matchBehavior || shouldShow(hideSuTitle, hideSuSummary)
+
+            val hideKpatchTitle = stringResource(id = R.string.home_hide_kpatch_version)
+            val hideKpatchSummary = stringResource(id = R.string.home_hide_kpatch_version_summary)
+            val showHideKpatch = matchBehavior || shouldShow(hideKpatchTitle, hideKpatchSummary)
+
+            val hideFingerprintTitle = stringResource(id = R.string.home_hide_fingerprint)
+            val hideFingerprintSummary = stringResource(id = R.string.home_hide_fingerprint_summary)
+            val showHideFingerprint = matchBehavior || shouldShow(hideFingerprintTitle, hideFingerprintSummary)
+
+            val showBehaviorCategory = showWebDebugging || showInstallConfirm || showDisableModules || showStayOnPage || showHideApatch || showHideSu || showHideKpatch || showHideFingerprint
+
+            if (showBehaviorCategory) {
+                SettingsCategory(icon = Icons.Filled.TouchApp, title = behaviorTitle, isSearching = searchText.isNotEmpty()) {
                     // Web Debugging
-                    SwitchItem(
-                        icon = Icons.Filled.DeveloperMode,
-                        title = stringResource(id = R.string.enable_web_debugging),
-                        summary = stringResource(id = R.string.enable_web_debugging_summary),
-                        checked = enableWebDebugging
-                    ) {
-                        APApplication.sharedPreferences.edit { putBoolean("enable_web_debugging", it) }
-                        enableWebDebugging = it
+                    if (showWebDebugging) {
+                        SwitchItem(
+                            icon = Icons.Filled.DeveloperMode,
+                            title = webDebuggingTitle,
+                            summary = webDebuggingSummary,
+                            checked = enableWebDebugging
+                        ) {
+                            APApplication.sharedPreferences.edit { putBoolean("enable_web_debugging", it) }
+                            enableWebDebugging = it
+                        }
                     }
                     
                     // Install Confirm
-                    SwitchItem(
-                        icon = Icons.Filled.Save,
-                        title = stringResource(id = R.string.settings_apm_install_confirm),
-                        summary = stringResource(id = R.string.settings_apm_install_confirm_summary),
-                        checked = installConfirm
-                    ) {
-                        prefs.edit { putBoolean("apm_install_confirm_enabled", it) }
-                        installConfirm = it
+                    if (showInstallConfirm) {
+                        SwitchItem(
+                            icon = Icons.Filled.Save,
+                            title = installConfirmTitle,
+                            summary = installConfirmSummary,
+                            checked = installConfirm
+                        ) {
+                            prefs.edit { putBoolean("apm_install_confirm_enabled", it) }
+                            installConfirm = it
+                        }
                     }
                     
                     // Show Disable All Modules
-                    SwitchItem(
-                        icon = Icons.Filled.DeleteSweep,
-                        title = stringResource(id = R.string.settings_show_disable_all_modules),
-                        summary = stringResource(id = R.string.settings_show_disable_all_modules_summary),
-                        checked = showDisableAllModules
-                    ) {
-                        prefs.edit { putBoolean("show_disable_all_modules", it) }
-                        showDisableAllModules = it
+                    if (showDisableModules) {
+                        SwitchItem(
+                            icon = Icons.Filled.DeleteSweep,
+                            title = disableModulesTitle,
+                            summary = disableModulesSummary,
+                            checked = showDisableAllModules
+                        ) {
+                            prefs.edit { putBoolean("show_disable_all_modules", it) }
+                            showDisableAllModules = it
+                        }
                     }
                     
                     // Stay on Page
-                    SwitchItem(
-                        icon = Icons.Filled.AspectRatio,
-                        title = stringResource(id = R.string.settings_apm_stay_on_page),
-                        summary = stringResource(id = R.string.settings_apm_stay_on_page_summary),
-                        checked = stayOnPage
-                    ) {
-                        prefs.edit { putBoolean("apm_action_stay_on_page", it) }
-                        stayOnPage = it
+                    if (showStayOnPage) {
+                        SwitchItem(
+                            icon = Icons.Filled.AspectRatio,
+                            title = stayOnPageTitle,
+                            summary = stayOnPageSummary,
+                            checked = stayOnPage
+                        ) {
+                            prefs.edit { putBoolean("apm_action_stay_on_page", it) }
+                            stayOnPage = it
+                        }
                     }
-                }
                 
-                // Hide Cards/Info
-                SwitchItem(
-                    icon = Icons.Filled.Info,
-                    title = stringResource(id = R.string.settings_hide_apatch_card),
-                    summary = stringResource(id = R.string.settings_hide_apatch_card_summary),
-                    checked = hideApatchCard
-                ) {
-                    prefs.edit { putBoolean("hide_apatch_card", it) }
-                    hideApatchCard = it
-                }
-                
-                SwitchItem(
-                    icon = Icons.Filled.Visibility,
-                    title = stringResource(id = R.string.home_hide_su_path),
-                    summary = stringResource(id = R.string.home_hide_su_path_summary),
-                    checked = hideSuPath
-                ) {
-                    prefs.edit { putBoolean("hide_su_path", it) }
-                    hideSuPath = it
-                }
-                
-                SwitchItem(
-                    icon = Icons.Filled.Visibility,
-                    title = stringResource(id = R.string.home_hide_kpatch_version),
-                    summary = stringResource(id = R.string.home_hide_kpatch_version_summary),
-                    checked = hideKpatchVersion
-                ) {
-                    prefs.edit { putBoolean("hide_kpatch_version", it) }
-                    hideKpatchVersion = it
-                }
-                
-                SwitchItem(
-                    icon = Icons.Filled.Visibility,
-                    title = stringResource(id = R.string.home_hide_fingerprint),
-                    summary = stringResource(id = R.string.home_hide_fingerprint_summary),
-                    checked = hideFingerprint
-                ) {
-                    prefs.edit { putBoolean("hide_fingerprint", it) }
-                    hideFingerprint = it
+                    // Hide Cards/Info
+                    if (showHideApatch) {
+                        SwitchItem(
+                            icon = Icons.Filled.Info,
+                            title = hideApatchTitle,
+                            summary = hideApatchSummary,
+                            checked = hideApatchCard
+                        ) {
+                            prefs.edit { putBoolean("hide_apatch_card", it) }
+                            hideApatchCard = it
+                        }
+                    }
+                    
+                    if (showHideSu) {
+                        SwitchItem(
+                            icon = Icons.Filled.Visibility,
+                            title = hideSuTitle,
+                            summary = hideSuSummary,
+                            checked = hideSuPath
+                        ) {
+                            prefs.edit { putBoolean("hide_su_path", it) }
+                            hideSuPath = it
+                        }
+                    }
+                    
+                    if (showHideKpatch) {
+                        SwitchItem(
+                            icon = Icons.Filled.Visibility,
+                            title = hideKpatchTitle,
+                            summary = hideKpatchSummary,
+                            checked = hideKpatchVersion
+                        ) {
+                            prefs.edit { putBoolean("hide_kpatch_version", it) }
+                            hideKpatchVersion = it
+                        }
+                    }
+                    
+                    if (showHideFingerprint) {
+                        SwitchItem(
+                            icon = Icons.Filled.Visibility,
+                            title = hideFingerprintTitle,
+                            summary = hideFingerprintSummary,
+                            checked = hideFingerprint
+                        ) {
+                            prefs.edit { putBoolean("hide_fingerprint", it) }
+                            hideFingerprint = it
+                        }
+                    }
                 }
             }
 
             // Security Category
-            SettingsCategory(icon = Icons.Filled.Security, title = stringResource(R.string.settings_category_security)) {
-                // Biometric
-                if (canAuthenticate) {
-                    SwitchItem(
-                        icon = Icons.Filled.Fingerprint,
-                        title = stringResource(id = R.string.settings_biometric_login),
-                        summary = stringResource(id = R.string.settings_biometric_login_summary),
-                        checked = biometricLogin,
-                        onCheckedChange = {
-                            prefs.edit { putBoolean("biometric_login", it) }
-                            biometricLogin = it
-                        })
-                }
+            val securityTitle = stringResource(R.string.settings_category_security)
+            val matchSecurity = shouldShow(securityTitle)
 
-                // Clear Key
-                if (kPatchReady) {
-                    val clearKeyDialogTitle = stringResource(id = R.string.clear_super_key)
-                    val clearKeyDialogContent = stringResource(id = R.string.settings_clear_super_key_dialog)
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        leadingContent = { Icon(Icons.Filled.Key, stringResource(id = R.string.super_key)) },
-                        headlineContent = { Text(stringResource(id = R.string.clear_super_key)) },
-                        modifier = Modifier.clickable {
-                            clearKeyDialog.showConfirm(
-                                title = clearKeyDialogTitle,
-                                content = clearKeyDialogContent,
-                                markdown = false,
-                            )
-                        })
-                }
-                
-                // Store Key
-                SwitchItem(
-                    icon = Icons.Filled.Key,
-                    title = stringResource(id = R.string.settings_donot_store_superkey),
-                    summary = stringResource(id = R.string.settings_donot_store_superkey_summary),
-                    checked = bSkipStoreSuperKey,
-                    onCheckedChange = {
-                        bSkipStoreSuperKey = it
-                        APatchKeyHelper.setShouldSkipStoreSuperKey(bSkipStoreSuperKey)
-                    })
-            }
+            val biometricTitle = stringResource(id = R.string.settings_biometric_login)
+            val biometricSummary = stringResource(id = R.string.settings_biometric_login_summary)
+            val showBiometric = canAuthenticate && (matchSecurity || shouldShow(biometricTitle, biometricSummary))
 
+            val clearKeyTitle = stringResource(id = R.string.clear_super_key)
+            val superKeyText = stringResource(id = R.string.super_key)
+            val showClearKey = kPatchReady && (matchSecurity || shouldShow(clearKeyTitle, superKeyText))
 
+            val storeKeyTitle = stringResource(id = R.string.settings_donot_store_superkey)
+            val storeKeySummary = stringResource(id = R.string.settings_donot_store_superkey_summary)
+            val showStoreKey = matchSecurity || shouldShow(storeKeyTitle, storeKeySummary)
 
-            // Module Category
-            SettingsCategory(icon = Icons.Filled.Extension, title = stringResource(R.string.settings_category_module)) {
-                if (aPatchReady) {
-                    SwitchItem(
-                        icon = Icons.Filled.Save,
-                        title = stringResource(id = R.string.settings_auto_backup_module),
-                        summary = stringResource(id = R.string.settings_auto_backup_module_summary) + "\n" + android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS).absolutePath + "/FolkPatch/ModuleBackups",
-                        checked = autoBackupModule
-                    ) {
-                        prefs.edit { putBoolean("auto_backup_module", it) }
-                        autoBackupModule = it
+            val showSecurityCategory = showBiometric || showClearKey || showStoreKey
+
+            if (showSecurityCategory) {
+                SettingsCategory(icon = Icons.Filled.Security, title = securityTitle, isSearching = searchText.isNotEmpty()) {
+                    // Biometric
+                    if (showBiometric) {
+                        SwitchItem(
+                            icon = Icons.Filled.Fingerprint,
+                            title = biometricTitle,
+                            summary = biometricSummary,
+                            checked = biometricLogin,
+                            onCheckedChange = {
+                                prefs.edit { putBoolean("biometric_login", it) }
+                                biometricLogin = it
+                            })
                     }
 
-                    if (autoBackupModule) {
+                    // Clear Key
+                    if (showClearKey) {
+                        val clearKeyDialogTitle = stringResource(id = R.string.clear_super_key)
+                        val clearKeyDialogContent = stringResource(id = R.string.settings_clear_super_key_dialog)
                         ListItem(
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(stringResource(id = R.string.settings_open_backup_dir)) },
+                            leadingContent = { Icon(Icons.Filled.Key, superKeyText) },
+                            headlineContent = { Text(clearKeyTitle) },
+                            modifier = Modifier.clickable {
+                                clearKeyDialog.showConfirm(
+                                    title = clearKeyDialogTitle,
+                                    content = clearKeyDialogContent,
+                                    markdown = false,
+                                )
+                            })
+                    }
+                    
+                    // Store Key
+                    if (showStoreKey) {
+                        SwitchItem(
+                            icon = Icons.Filled.Key,
+                            title = storeKeyTitle,
+                            summary = storeKeySummary,
+                            checked = bSkipStoreSuperKey,
+                            onCheckedChange = {
+                                bSkipStoreSuperKey = it
+                                APatchKeyHelper.setShouldSkipStoreSuperKey(bSkipStoreSuperKey)
+                            })
+                    }
+                }
+            }
+
+            // Module Category
+            val moduleTitle = stringResource(R.string.settings_category_module)
+            val matchModule = shouldShow(moduleTitle)
+
+            val autoBackupTitle = stringResource(id = R.string.settings_auto_backup_module)
+            val autoBackupSummary = stringResource(id = R.string.settings_auto_backup_module_summary)
+            val showAutoBackup = aPatchReady && (matchModule || shouldShow(autoBackupTitle, autoBackupSummary))
+
+            val openBackupDirTitle = stringResource(id = R.string.settings_open_backup_dir)
+            val showOpenBackupDir = aPatchReady && autoBackupModule && (matchModule || shouldShow(openBackupDirTitle))
+
+            val showModuleCategory = showAutoBackup || showOpenBackupDir
+
+            if (showModuleCategory) {
+                SettingsCategory(icon = Icons.Filled.Extension, title = moduleTitle, isSearching = searchText.isNotEmpty()) {
+                    if (showAutoBackup) {
+                        SwitchItem(
+                            icon = Icons.Filled.Save,
+                            title = autoBackupTitle,
+                            summary = autoBackupSummary + "\n" + android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS).absolutePath + "/FolkPatch/ModuleBackups",
+                            checked = autoBackupModule
+                        ) {
+                            prefs.edit { putBoolean("auto_backup_module", it) }
+                            autoBackupModule = it
+                        }
+                    }
+
+                    if (showOpenBackupDir) {
+                        ListItem(
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            headlineContent = { Text(openBackupDirTitle) },
                             modifier = Modifier.clickable {
                                 val backupDir = java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "FolkPatch/ModuleBackups")
                                 if (!backupDir.exists()) backupDir.mkdirs()
@@ -1333,168 +1622,217 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             }
 
             // Multimedia Category
-            SettingsCategory(
-                title = stringResource(id = R.string.settings_category_multimedia),
-                icon = Icons.Filled.Headset
-            ) {
-                // Background Music
-                SwitchItem(
+            val multimediaTitle = stringResource(id = R.string.settings_category_multimedia)
+            val matchMultimedia = shouldShow(multimediaTitle)
+
+            val musicTitle = stringResource(id = R.string.settings_background_music)
+            val musicSummary = stringResource(id = R.string.settings_background_music_summary)
+            val musicEnabledText = stringResource(id = R.string.settings_background_music_enabled)
+            val musicPlayingText = if (MusicConfig.musicFilename != null) stringResource(id = R.string.settings_background_music_playing, MusicConfig.musicFilename!!) else ""
+            val showMusicSwitch = matchMultimedia || shouldShow(musicTitle, musicSummary, musicEnabledText, musicPlayingText)
+
+            val selectMusicTitle = stringResource(id = R.string.settings_select_music_file)
+            val musicSelectedText = stringResource(id = R.string.settings_music_selected)
+            val showSelectMusic = MusicConfig.isMusicEnabled && (matchMultimedia || shouldShow(selectMusicTitle, musicSelectedText))
+
+            val autoPlayTitle = stringResource(id = R.string.settings_music_auto_play)
+            val autoPlaySummary = stringResource(id = R.string.settings_music_auto_play_summary)
+            val showAutoPlay = MusicConfig.isMusicEnabled && (matchMultimedia || shouldShow(autoPlayTitle, autoPlaySummary))
+
+            val loopingTitle = stringResource(id = R.string.settings_music_looping)
+            val loopingSummary = stringResource(id = R.string.settings_music_looping_summary)
+            val showLooping = MusicConfig.isMusicEnabled && (matchMultimedia || shouldShow(loopingTitle, loopingSummary))
+
+            val musicVolumeTitle = stringResource(id = R.string.settings_music_volume)
+            val showMusicVolume = MusicConfig.isMusicEnabled && (matchMultimedia || shouldShow(musicVolumeTitle))
+
+            val playbackControlTitle = stringResource(id = R.string.settings_music_playback_control)
+            val showPlaybackControl = MusicConfig.isMusicEnabled && MusicConfig.musicFilename != null && (matchMultimedia || shouldShow(playbackControlTitle))
+
+            val clearMusicTitle = stringResource(id = R.string.settings_clear_music)
+            val showClearMusic = MusicConfig.isMusicEnabled && MusicConfig.musicFilename != null && (matchMultimedia || shouldShow(clearMusicTitle))
+
+            val showMultimediaCategory = showMusicSwitch || showSelectMusic || showAutoPlay || showLooping || showMusicVolume || showPlaybackControl || showClearMusic
+
+            if (showMultimediaCategory) {
+                SettingsCategory(
+                    title = multimediaTitle,
                     icon = Icons.Filled.Headset,
-                    title = stringResource(id = R.string.settings_background_music),
-                    summary = if (MusicConfig.isMusicEnabled) {
-                        if (MusicConfig.musicFilename != null) {
-                            stringResource(id = R.string.settings_background_music_playing, MusicConfig.musicFilename!!)
-                        } else {
-                            stringResource(id = R.string.settings_background_music_enabled)
-                        }
-                    } else {
-                        stringResource(id = R.string.settings_background_music_summary)
-                    },
-                    checked = MusicConfig.isMusicEnabled
+                    isSearching = searchText.isNotEmpty()
                 ) {
-                    MusicConfig.setMusicEnabledState(it)
-                    MusicConfig.save(context)
-                    MusicManager.reload()
-                }
-
-                if (MusicConfig.isMusicEnabled) {
-                    // Select Music File
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        headlineContent = { Text(text = stringResource(id = R.string.settings_select_music_file)) },
-                        supportingContent = {
-                            if (MusicConfig.musicFilename != null) {
-                                Text(
-                                    text = stringResource(id = R.string.settings_music_selected),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.outline
-                                )
-                            }
-                        },
-                        leadingContent = { Icon(Icons.Filled.Headset, null) },
-                        modifier = Modifier.clickable {
-                            try {
-                                pickMusicLauncher.launch("audio/*")
-                            } catch (e: ActivityNotFoundException) {
-                                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                            }
+                    // Background Music
+                    if (showMusicSwitch) {
+                        SwitchItem(
+                            icon = Icons.Filled.Headset,
+                            title = musicTitle,
+                            summary = if (MusicConfig.isMusicEnabled) {
+                                if (MusicConfig.musicFilename != null) {
+                                    musicPlayingText
+                                } else {
+                                    musicEnabledText
+                                }
+                            } else {
+                                musicSummary
+                            },
+                            checked = MusicConfig.isMusicEnabled
+                        ) {
+                            MusicConfig.setMusicEnabledState(it)
+                            MusicConfig.save(context)
+                            MusicManager.reload()
                         }
-                    )
-
-                    // Auto Play
-                    SwitchItem(
-                        icon = Icons.Filled.TouchApp,
-                        title = stringResource(id = R.string.settings_music_auto_play),
-                        summary = stringResource(id = R.string.settings_music_auto_play_summary),
-                        checked = MusicConfig.isAutoPlayEnabled
-                    ) {
-                        MusicConfig.setAutoPlayEnabledState(it)
-                        MusicConfig.save(context)
                     }
 
-                    // Loop Play
-                    SwitchItem(
-                        icon = Icons.Filled.Refresh,
-                        title = stringResource(id = R.string.settings_music_looping),
-                        summary = stringResource(id = R.string.settings_music_looping_summary),
-                        checked = MusicConfig.isLoopingEnabled
-                    ) {
-                        MusicConfig.setLoopingEnabledState(it)
-                        MusicConfig.save(context)
-                        MusicManager.updateLooping(it)
-                    }
-
-                    // Volume
-                    ListItem(
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        headlineContent = { Text(stringResource(id = R.string.settings_music_volume)) },
-                        supportingContent = {
-                            androidx.compose.material3.Slider(
-                                value = MusicConfig.volume,
-                                onValueChange = { 
-                                    MusicConfig.setVolumeValue(it)
-                                    MusicManager.updateVolume(it)
+                    if (MusicConfig.isMusicEnabled) {
+                        // Select Music File
+                        if (showSelectMusic) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(text = selectMusicTitle) },
+                                supportingContent = {
+                                    if (MusicConfig.musicFilename != null) {
+                                        Text(
+                                            text = musicSelectedText,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.outline
+                                        )
+                                    }
                                 },
-                                onValueChangeFinished = { MusicConfig.save(context) },
-                                valueRange = 0f..1f,
-                                colors = androidx.compose.material3.SliderDefaults.colors(
-                                    thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
-                                    activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
-                                )
+                                leadingContent = { Icon(Icons.Filled.Headset, null) },
+                                modifier = Modifier.clickable {
+                                    try {
+                                        pickMusicLauncher.launch("audio/*")
+                                    } catch (e: ActivityNotFoundException) {
+                                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             )
                         }
-                    )
 
-                    // Playback Progress
-                    val currentPosition by MusicManager.currentPosition.collectAsState(initial = 0)
-                    val duration by MusicManager.duration.collectAsState(initial = 0)
-                    val isPlaying by MusicManager.isPlaying.collectAsState(initial = false)
+                        // Auto Play
+                        if (showAutoPlay) {
+                            SwitchItem(
+                                icon = Icons.Filled.TouchApp,
+                                title = autoPlayTitle,
+                                summary = autoPlaySummary,
+                                checked = MusicConfig.isAutoPlayEnabled
+                            ) {
+                                MusicConfig.setAutoPlayEnabledState(it)
+                                MusicConfig.save(context)
+                            }
+                        }
 
-                    if (MusicConfig.musicFilename != null) {
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(stringResource(id = R.string.settings_music_playback_control)) },
-                            supportingContent = {
-                                Column {
+                        // Loop Play
+                        if (showLooping) {
+                            SwitchItem(
+                                icon = Icons.Filled.Refresh,
+                                title = loopingTitle,
+                                summary = loopingSummary,
+                                checked = MusicConfig.isLoopingEnabled
+                            ) {
+                                MusicConfig.setLoopingEnabledState(it)
+                                MusicConfig.save(context)
+                                MusicManager.updateLooping(it)
+                            }
+                        }
+
+                        // Volume
+                        if (showMusicVolume) {
+                            ListItem(
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                headlineContent = { Text(musicVolumeTitle) },
+                                supportingContent = {
                                     androidx.compose.material3.Slider(
-                                        value = currentPosition.toFloat(),
+                                        value = MusicConfig.volume,
                                         onValueChange = { 
-                                            MusicManager.seekTo(it.toInt())
+                                            MusicConfig.setVolumeValue(it)
+                                            MusicManager.updateVolume(it)
                                         },
-                                        valueRange = 0f..duration.toFloat().coerceAtLeast(1f),
+                                        onValueChangeFinished = { MusicConfig.save(context) },
+                                        valueRange = 0f..1f,
                                         colors = androidx.compose.material3.SliderDefaults.colors(
                                             thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
                                             activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
                                         )
                                     )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = formatTime(currentPosition),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                        Text(
-                                            text = formatTime(duration),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
                                 }
-                            },
-                            trailingContent = {
-                                IconButton(onClick = { MusicManager.toggle() }) {
-                                    Icon(
-                                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    // Clear Music
-                    if (MusicConfig.musicFilename != null) {
-                        val clearMusicDialog = rememberConfirmDialog(
-                            onConfirm = {
-                                MusicConfig.clearMusic(context)
-                                MusicManager.stop()
-                                scope.launch {
-                                    snackBarHost.showSnackbar(message = context.getString(R.string.settings_music_cleared))
-                                }
-                            }
-                        )
-                        ListItem(
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            headlineContent = { Text(text = stringResource(id = R.string.settings_clear_music)) },
-                            leadingContent = { Icon(Icons.Filled.DeleteSweep, null) },
-                            modifier = Modifier.clickable {
-                                clearMusicDialog.showConfirm(
-                                    title = context.getString(R.string.settings_clear_music),
-                                    content = context.getString(R.string.settings_clear_music_confirm)
+                        // Playback Progress
+                        val currentPosition by MusicManager.currentPosition.collectAsState(initial = 0)
+                        val duration by MusicManager.duration.collectAsState(initial = 0)
+                        val isPlaying by MusicManager.isPlaying.collectAsState(initial = false)
+
+                        if (MusicConfig.musicFilename != null) {
+                             if (showPlaybackControl) {
+                                ListItem(
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                    headlineContent = { Text(playbackControlTitle) },
+                                    supportingContent = {
+                                        Column {
+                                            androidx.compose.material3.Slider(
+                                                value = currentPosition.toFloat(),
+                                                onValueChange = { 
+                                                    MusicManager.seekTo(it.toInt())
+                                                },
+                                                valueRange = 0f..duration.toFloat().coerceAtLeast(1f),
+                                                colors = androidx.compose.material3.SliderDefaults.colors(
+                                                    thumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f),
+                                                    activeTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 1f)
+                                                )
+                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = formatTime(currentPosition),
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                                Text(
+                                                    text = formatTime(duration),
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                            }
+                                        }
+                                    },
+                                    trailingContent = {
+                                        IconButton(onClick = { MusicManager.toggle() }) {
+                                            Icon(
+                                                imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
                                 )
                             }
-                        )
+                        }
+
+                        // Clear Music
+                        if (MusicConfig.musicFilename != null) {
+                            val clearMusicDialog = rememberConfirmDialog(
+                                onConfirm = {
+                                    MusicConfig.clearMusic(context)
+                                    MusicManager.stop()
+                                    scope.launch {
+                                        snackBarHost.showSnackbar(message = context.getString(R.string.settings_music_cleared))
+                                    }
+                                }
+                            )
+                            if (showClearMusic) {
+                                ListItem(
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                                    headlineContent = { Text(text = clearMusicTitle) },
+                                    leadingContent = { Icon(Icons.Filled.DeleteSweep, null) },
+                                    modifier = Modifier.clickable {
+                                        clearMusicDialog.showConfirm(
+                                            title = context.getString(R.string.settings_clear_music),
+                                            content = context.getString(R.string.settings_clear_music_confirm)
+                                        )
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
