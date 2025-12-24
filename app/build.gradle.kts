@@ -95,7 +95,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.baicizhan.ireading"
+        applicationId = "a.good.xk"
         buildConfigField("boolean", "DEBUG_FAKE_ROOT", "false")
         buildConfigField("String", "buildKPV", "\"$kernelPatchVersion\"")
     }
