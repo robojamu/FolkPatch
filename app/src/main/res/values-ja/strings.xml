@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">FolkPatch</string>
+    <string name="app_name" translatable="false">FreePatch</string>
 
     <string name="settings_apm_stay_on_page">操作ページに留まる</string>
     <string name="settings_apm_stay_on_page_summary">モジュール操作実行後に自動的に戻らない</string>
@@ -17,7 +17,7 @@
     <string name="reboot_bootloader">ブートローダーへ再起動</string>
     <string name="reboot_download">ダウンロードモードへ再起動</string>
     <string name="reboot_edl">EDL モードへ再起動</string>
-    <string name="about">FolkPatch について</string>
+    <string name="about">FreePatch について</string>
     <string name="settings_app_language">言語</string>
     <string name="system_default">システムのデフォルト</string>
     <string name="settings_global_namespace_mode">グローバル名前空間モード</string>
@@ -97,7 +97,7 @@
     <string name="home_system_version">システムのバージョン</string>
     <string name="home_kpatch_version">KernelPatch バージョン</string>
     <string name="home_su_path">su</string>
-    <string name="home_apatch_version">FolkPatch のバージョン</string>s
+    <string name="home_apatch_version">FreePatch のバージョン</string>s
     <string name="kpm">KPModule</string>
     <string name="kpm_kp_not_installed">KernelPatch はインストールされていません</string>
     <string name="kpm_add_kpm">KPM を追加</string>
@@ -157,7 +157,7 @@
     <string name="setting_reset_su_new_path">新しいフルパス</string>
 
     <string name="setting_auto_backup_boot">Boot の自動バックアップ</string>
-    <string name="setting_auto_backup_boot_summary">パッチ適用時に Boot イメージを /storage/emulated/0/Download/FolkPatch/BootBackups/ に自動的にバックアップ</string>
+    <string name="setting_auto_backup_boot_summary">パッチ適用時に Boot イメージを /storage/emulated/0/Download/FreePatch/BootBackups/ に自動的にバックアップ</string>
 
     <string name="settings_folkx_engine_title">FolkX アニメーションエンジン</string>
     <string name="settings_folkx_engine_summary">トップレベルページの切り替え時に滑らかな物理スプリングアニメーションを使用</string>
@@ -192,7 +192,7 @@
     <string name="home_dialog_auth_fail_title">認証失敗</string>
     <string name="home_dialog_auth_fail_content">SuperKey の認証に失敗したため、APatchは正しく動作しません。 \n以下の理由が考えられます: \n1. KernelPatch で\\"boot.img\\"をパッチしていない。 \n2. パッチを適用した\\"boot.img\\"をフラッシュしていない。 \n3. SuperKey が間違っている。 \n4. デバイスが APatch と KernelPatch に対応していない。 \n \n再度確認して、もう一度お試しください。問題が解決しない場合は、公式リポジトリの Issue ページで質問をして下さい。</string>
     <string name="home_more_menu_feedback_or_suggestion">フィードバック / 提案</string>
-    <string name="home_more_menu_about">FolkPatch について</string>
+    <string name="home_more_menu_about">FreePatch について</string>
     <string name="home_dialog_uninstall_title">アンインストール</string>
     <string name="home_dialog_uninstall_ap_only">パッチをアンインストール</string>
     <string name="home_dialog_uninstall_ap_only_desc">AndroidPatchのみを削除し、マネージャーを保持します。</string>
@@ -262,7 +262,7 @@
     <string name="app_title_apatch_folk">APatch Folk</string>
     <string name="app_title_apatchx">APatch X</string>
     <string name="app_title_apatch">APatch</string>
-    <string name="app_title_folkpatch">FolkPatch</string>
+    <string name="app_title_folkpatch">FreePatch</string>
     <string name="app_title_kernelpatch">KernelPatch</string>
     <string name="app_title_supersu">SuperSU</string>
     <string name="app_title_folksu">FolkSU</string>
@@ -296,8 +296,8 @@
     <string name="settings_select_superuser_background">スーパーユーザー背景</string>
     <string name="settings_select_system_module_background">システムモジュール背景</string>
     <string name="settings_select_settings_background">設定ページ背景</string>
-    <string name="launcher_icon_default">FolkPatch</string>
-    <string name="launcher_icon_classic">FolkPatch Anime</string>
+    <string name="launcher_icon_default">FreePatch</string>
+    <string name="launcher_icon_classic">FreePatch Anime</string>
     <string name="launcher_icon_apatch">APatch</string>
     <string name="launcher_icon_kernelsu">KernelSU</string>
     <string name="launcher_icon_kernelsu_next">KernelSU Next</string>
@@ -411,7 +411,7 @@
     <string name="settings_home_layout_default">ListUI</string>
     <string name="settings_home_layout_grid">GridUI</string>
     <string name="unofficial_version_title">非公式バージョン</string>
-    <string name="unofficial_version_message">使用している FolkPatch は公式アプリではありません。公式アプリをダウンロードしてください！</string>
+    <string name="unofficial_version_message">使用している FreePatch は公式アプリではありません。公式アプリをダウンロードしてください！</string>
     <string name="go_to_github">Github へ移動</string>
     <string name="settings_save_theme">テーマを保存</string>
     <string name="settings_import_theme">テーマをインポート</string>

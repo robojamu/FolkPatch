@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">FolkPatch</string>
+    <string name="app_name" translatable="false">FreePatch</string>
 
     <string name="home">الرئيسية</string>
 
@@ -138,7 +138,7 @@
     <string name="home_system_version">إصدار النظام</string>
     <string name="home_kpatch_version">إصدار KernelPatch</string>
     <string name="home_su_path">su القابل للتنفيذ</string>
-    <string name="home_apatch_version">إصدار FolkPatch</string>
+    <string name="home_apatch_version">إصدار FreePatch</string>
 
     <string name="kpm">وحدة KP</string>
     <string name="kpm_kp_not_installed">KernelPatch غير مثبت</string>
@@ -199,7 +199,7 @@
     <string name="setting_reset_su_new_path">المسار الكامل الجديد</string>
 
     <string name="setting_auto_backup_boot">النسخ الاحتياطي التلقائي لـ boot</string>
-    <string name="setting_auto_backup_boot_summary">النسخ الاحتياطي التلقائي لصورة boot إلى /storage/emulated/0/Download/FolkPatch/BootBackups/ عند التصحيح</string>
+    <string name="setting_auto_backup_boot_summary">النسخ الاحتياطي التلقائي لصورة boot إلى /storage/emulated/0/Download/FreePatch/BootBackups/ عند التصحيح</string>
 
     <string name="apm_webui_open">فتح</string>
     <string name="apm_action">إجراء</string>
@@ -309,7 +309,7 @@
     <string name="app_title_apatch_folk">APatch Folk</string>
     <string name="app_title_apatchx">APatch X</string>
     <string name="app_title_apatch">APatch</string>
-    <string name="app_title_folkpatch">FolkPatch</string>
+    <string name="app_title_folkpatch">FreePatch</string>
     <string name="app_title_kernelpatch">KernelPatch</string>
     <string name="app_title_supersu">SuperSU</string>
     <string name="app_title_folksu">FolkSU</string>
@@ -362,8 +362,8 @@
     <string name="settings_clear_background_confirm">هل أنت متأكد من أنك تريد مسح صورة الخلفية؟</string>
 
     <string name="settings_launcher_icon">أيقونة اللانشر</string>
-    <string name="launcher_icon_default">FolkPatch</string>
-    <string name="launcher_icon_classic">FolkPatch Anime</string>
+    <string name="launcher_icon_default">FreePatch</string>
+    <string name="launcher_icon_classic">FreePatch Anime</string>
     <string name="launcher_icon_apatch">APatch</string>
     <string name="launcher_icon_kernelsu">KernelSU</string>
 
@@ -462,7 +462,7 @@
     <string name="settings_home_layout_grid">واجهة شبكة</string>
     <string name="settings_home_layout_focus">واجهة تركيز</string>
     <string name="unofficial_version_title">إصدار غير رسمي</string>
-    <string name="unofficial_version_message">أنت تستخدم FolkPatch وهو ليس تطبيقًا رسميًا، يرجى تنزيل التطبيق الرسمي!</string>
+    <string name="unofficial_version_message">أنت تستخدم FreePatch وهو ليس تطبيقًا رسميًا، يرجى تنزيل التطبيق الرسمي!</string>
     <string name="go_to_github">اذهب إلى Github</string>
     <string name="settings_save_theme">حفظ السمة</string>
     <string name="settings_import_theme">استيراد السمة</string>

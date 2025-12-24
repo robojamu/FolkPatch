@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">FolkPatch</string>
+    <string name="app_name" translatable="false">FreePatch</string>
 
     <string name="home">仙府主殿</string>
     <string name="success">登仙功成</string>
@@ -111,7 +111,7 @@
     <string name="home_system_version">天道篇次</string>
     <string name="home_kpatch_version">道核符箓篇次</string>
     <string name="home_su_path">登仙令符</string>
-    <string name="home_apatch_version">FolkPatch仙法篇次</string>
+    <string name="home_apatch_version">FreePatch仙法篇次</string>
 
     <string name="kpm">道核仙符</string>
     <string name="kpm_kp_not_installed">未凝炼道核符箓</string>
@@ -176,7 +176,7 @@
     <string name="setting_reset_su_new_path">新登仙令符全径</string>
 
     <string name="setting_auto_backup_boot">自动备份仙躯</string>
-    <string name="setting_auto_backup_boot_summary">炼符时自动备份仙躯镜像至 /storage/emulated/0/Download/FolkPatch/BootBackups/</string>
+    <string name="setting_auto_backup_boot_summary">炼符时自动备份仙躯镜像至 /storage/emulated/0/Download/FreePatch/BootBackups/</string>
 
     <string name="settings_folkx_engine_title">FolkX仙法动画引擎</string>
     <string name="settings_folkx_engine_summary">在天阶仙页转换时使用仙域灵动的物理符箓动画</string>
@@ -293,7 +293,7 @@
     <string name="app_title_apatch_folk">APatch Folk</string>
     <string name="app_title_apatchx">APatch X</string>
     <string name="app_title_apatch">APatch</string>
-    <string name="app_title_folkpatch">FolkPatch</string>
+    <string name="app_title_folkpatch">FreePatch</string>
     <string name="app_title_kernelpatch">KernelPatch</string>
     <string name="app_title_supersu">SuperSU</string>
     <string name="app_title_folksu">FolkSU</string>
@@ -328,8 +328,8 @@
     <string name="settings_select_system_module_background">系统模块仙府背景</string>
     <string name="settings_select_settings_background">设置页面仙府背景</string>
     <string name="settings_launcher_icon">引仙台标识</string>
-    <string name="launcher_icon_default">FolkPatch</string>
-    <string name="launcher_icon_classic">FolkPatch Anime</string>
+    <string name="launcher_icon_default">FreePatch</string>
+    <string name="launcher_icon_classic">FreePatch Anime</string>
     <string name="launcher_icon_apatch">APatch</string>
     <string name="launcher_icon_kernelsu">KernelSU</string>
     <string name="launcher_icon_kernelsu_next">KernelSU Next</string>
@@ -448,7 +448,7 @@
     
     <!-- Unofficial Version Strings -->
     <string name="unofficial_version_title">非官制版</string>
-    <string name="unofficial_version_message">君所用之FolkPatch非官制所出，请下载官制正版应用！</string>
+    <string name="unofficial_version_message">君所用之FreePatch非官制所出，请下载官制正版应用！</string>
     <string name="go_to_github">往Github处</string>
     <string name="settings_save_theme">藏仙府色章</string>
     <string name="settings_import_theme">引仙府色章</string>
