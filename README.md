@@ -1,17 +1,13 @@
 <div align="center">
-<a href="https://github.com/matsuzaka-yuki/FolkPatch/releases/latest"><img src="logo.png" style="width: 128px;" alt="logo"></a>
+<h1 align="center">FreePatch Manager</h1>
 
-<h1 align="center">FolkPatch Manager</h1>
-
-[![Latest Release](https://img.shields.io/github/v/release/matsuzaka-yuki/APatch-Ultra?label=Release&logo=github)](https://github.com/matsuzaka-yuki/APatch-Ultra/releases/latest)
-[![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/FolkPatch)
 [![GitHub License](https://img.shields.io/github/license/bmax121/APatch?logo=gnu)](/LICENSE)
 
 </div>
 
-**语言 / Language:** [中文](README.md) | [English](README_EN.md)
+**语言 / Language:** [中文](README.md)
 
-**FolkPatch** 是基于 [APatch](https://github.com/bmax121/APatch) 开发的扩展非并行分支，只通过优化界面设计和功能扩展，不引入新的核心功能。
+**FreePatch(FolkPatch-spoof)** 是基于 [APatch](https://github.com/bmax121/APatch) 和 [FolkPatch](https://github.com/matsuzaka-yuki/FolkPatch) 的自定义包名分支，不对核心内容进行任何修改
 
 ## 主要特性
 
@@ -26,9 +22,6 @@
 - 模块全局排除,更加快速
 - 在线模块下载功能
 
-## 下载安装
-
-从 [发布页面](https://github.com/matsuzaka-yuki/FolkPatch/releases/latest) 下载最新的APK。
 
 ## 系统要求
 
@@ -44,18 +37,14 @@
 - [KernelSU](https://github.com/tiann/KernelSU) - 应用UI和类似Magisk的模块支持
 - [Sukisu-Ultra](https://github.com/SukiSU-Ultra/SukiSU-Ultra) - 参考一些界面的设计
 - [APatch](https://github.com/bmax121/APatch) - 上游分支
+- [FolkPatch](https://github.com/matsuzaka-yuki/FolkPatch) - 上游分支
 
 ## 许可证
 
-FolkPatch 遵循 GNU General Public License v3 [GPL-3](http://www.gnu.org/copyleft/gpl.html) 许可证开源。
-
-## FolkPatch讨论交流
-
-- Telegram 频道: [@FolkPatch](https://t.me/FolkPatch)
-- QQ群: 1074588103
+FreePatch 遵循 GNU General Public License v3 [GPL-3](http://www.gnu.org/copyleft/gpl.html) 许可证开源。
 
 ## APatch社区
 
 频道地址: [@APatch](https://t.me/apatch_discuss)
 
-FolkPatch 的问题和建议请在 [@FolkPatch](https://t.me/FolkPatch) 频道或 QQ群 中提出,不要给官方频道造成困扰。
+FreePatch 的问题和建议请在ISSUE中提出,不要给官方频道造成困扰。
