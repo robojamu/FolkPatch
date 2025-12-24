@@ -95,7 +95,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "a.shifen.muyu"
+        applicationId = "com.baicizhan.ireading"
         buildConfigField("boolean", "DEBUG_FAKE_ROOT", "false")
         buildConfigField("String", "buildKPV", "\"$kernelPatchVersion\"")
     }
