@@ -13,6 +13,14 @@
     <string name="kernel_patch">N bản vá nhân</string>
     <string name="android_patch">N bản vá hệ thống</string>
 
+    <string name="settings_nav_layout_title">Cài đặt bố cục điều hướng</string>
+    <string name="settings_nav_layout_summary">Ẩn hoặc hiển thị một số thành phần điều hướng</string>
+    <string name="settings_show_apm">Hiển thị APM</string>
+    <string name="settings_show_kpm">Hiển thị KPM</string>
+    <string name="settings_show_superuser">Hiển thị SuperUser</string>
+    <string name="settings_disable_module_update_check">Vô hiệu hóa kiểm tra cập nhật module</string>
+    <string name="settings_disable_module_update_check_summary">Vô hiệu hóa kiểm tra cập nhật tự động cho module hệ thống</string>
+
     <string name="reboot">Khởi động lại</string>
     <string name="settings">Cài đặt</string>
     <string name="reboot_recovery">Khởi động lại vào Recovery</string>
@@ -141,7 +149,7 @@
     <string name="su_exclude_btn">Loại trừ</string>
     <string name="su_exclude_reverse_btn">Loại trừ ngược</string>
     <string name="su_pkg_excluded_setting_title">Chỉnh sửa loại trừ</string>
-    <string name="su_pkg_excluded_setting_summary">Bật tùy chọn này sẽ cho phép APatch khôi phục mọi tệp đã được module ứng dụng này sửa đổi.</string>
+    <string name="su_pkg_excluded_setting_summary">Bật tùy chọn này sẽ cho phép FolkPatch khôi phục mọi tệp đã được module ứng dụng này sửa đổi.</string>
     <string name="su_show_system_apps">Hiển thị ứng dụng hệ thống</string>
     <string name="su_hide_system_apps">Ẩn ứng dụng hệ thống</string>
     <string name="su_refresh">Làm mới</string>
@@ -451,6 +459,7 @@
     <string name="settings_home_layout_style">Kiểu bố cục trang chủ</string>
     <string name="settings_home_layout_default">ListUI</string>
     <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
     <string name="unofficial_version_title">Phiên bản không chính thức</string>
     <string name="unofficial_version_message">Bạn đang sử dụng trình quản lý FreePatch phiên bản thứ ba, có thể gây thiệt hại tài sản, vui lòng tải APP bản quyền sử dụng!</string>
     <string name="go_to_github">Đi đến Github</string>
@@ -595,4 +604,9 @@
     <string name="app_list_loading_scheme_root_service">RootService (Mặc định)</string>
     <string name="app_list_loading_scheme_package_manager">PackageManager (API hệ thống)</string>
     <string name="app_list_loading_scheme_dialog_title">Sơ đồ tải</string>
+    <string name="su_backup_list">Danh sách sao lưu</string>
+    <string name="su_restore_list">Danh sách khôi phục</string>
+    <string name="backup_success">Sao lưu thành công</string>
+    <string name="restore_success">Khôi phục thành công</string>
+
 </resources>

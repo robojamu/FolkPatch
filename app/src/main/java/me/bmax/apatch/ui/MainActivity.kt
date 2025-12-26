@@ -34,8 +34,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import android.content.SharedPreferences
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,7 +83,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.background
 import androidx.compose.ui.window.DialogProperties
 import me.bmax.apatch.R
 import androidx.compose.runtime.LaunchedEffect
@@ -101,6 +105,7 @@ class MainActivity : AppCompatActivity() {
     private var isLoading = true
     private var installUri: Uri? = null
     private lateinit var permissionHandler: PermissionRequestHandler
+    private val isLocked = mutableStateOf(false)
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(me.bmax.apatch.util.DPIUtils.updateContext(newBase))
@@ -148,6 +153,7 @@ class MainActivity : AppCompatActivity() {
         ) == androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
 
         if (biometricLogin && canAuthenticate) {
+            isLocked.value = true
             val biometricPrompt = androidx.biometric.BiometricPrompt(
                 this,
                 androidx.core.content.ContextCompat.getMainExecutor(this),
@@ -160,7 +166,7 @@ class MainActivity : AppCompatActivity() {
 
                     override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
                         super.onAuthenticationSucceeded(result)
-                        setupUI()
+                        isLocked.value = false
                     }
                 })
             val promptInfo = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
@@ -169,9 +175,8 @@ class MainActivity : AppCompatActivity() {
                 .setAllowedAuthenticators(androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL)
                 .build()
             biometricPrompt.authenticate(promptInfo)
-        } else {
-            setupUI()
         }
+        setupUI()
     }
 
     private fun setupUI() {
@@ -194,6 +199,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
+            val locked by remember { isLocked }
+            if (locked) {
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+            } else {
             val prefs = APApplication.sharedPreferences
             var folkXEngineEnabled by remember {
                 mutableStateOf(prefs.getBoolean("folkx_engine_enabled", true))
@@ -434,6 +443,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        }
 
         // Initialize Coil
         val iconSize = resources.getDimensionPixelSize(android.R.dimen.app_icon_size)
@@ -509,6 +519,25 @@ private fun BottomBar(navController: NavHostController) {
     val state by APApplication.apStateLiveData.observeAsState(APApplication.State.UNKNOWN_STATE)
     val navigator = navController.rememberDestinationsNavigator()
 
+    val prefs = APApplication.sharedPreferences
+    var showNavApm by remember { mutableStateOf(prefs.getBoolean("show_nav_apm", true)) }
+    var showNavKpm by remember { mutableStateOf(prefs.getBoolean("show_nav_kpm", true)) }
+    var showNavSuperUser by remember { mutableStateOf(prefs.getBoolean("show_nav_superuser", true)) }
+
+    DisposableEffect(Unit) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, key ->
+            when (key) {
+                "show_nav_apm" -> showNavApm = sharedPrefs.getBoolean(key, true)
+                "show_nav_kpm" -> showNavKpm = sharedPrefs.getBoolean(key, true)
+                "show_nav_superuser" -> showNavSuperUser = sharedPrefs.getBoolean(key, true)
+            }
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            prefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
     Crossfade(
         targetState = state,
         label = "BottomBarStateCrossfade"
@@ -525,42 +554,51 @@ private fun BottomBar(navController: NavHostController) {
             }
         ) {
             BottomBarDestination.entries.forEach { destination ->
-                val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
+                val show = when {
+                    destination == BottomBarDestination.AModule && !showNavApm -> false
+                    destination == BottomBarDestination.KModule && !showNavKpm -> false
+                    destination == BottomBarDestination.SuperUser && !showNavSuperUser -> false
+                    (destination.kPatchRequired && !kPatchReady) || (destination.aPatchRequired && !aPatchReady) -> false
+                    else -> true
+                }
 
-                val hideDestination = (destination.kPatchRequired && !kPatchReady) || (destination.aPatchRequired && !aPatchReady)
-                if (hideDestination) return@forEach
+                if (show) {
+                    key(destination) {
+                        val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
 
-                NavigationBarItem(
-                    selected = isCurrentDestOnBackStack,
-                    onClick = {
-                        if (isCurrentDestOnBackStack) {
-                            navigator.popBackStack(destination.direction, false)
-                        }
-                        navigator.navigate(destination.direction) {
-                            popUpTo(NavGraphs.root) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    icon = {
-                        if (isCurrentDestOnBackStack) {
-                            Icon(destination.iconSelected, stringResource(destination.label))
-                        } else {
-                            Icon(destination.iconNotSelected, stringResource(destination.label))
-                        }
-                    },
-                    label = {
-                        Text(
-                            text = stringResource(destination.label),
-                            overflow = TextOverflow.Visible,
-                            maxLines = 1,
-                            softWrap = false
+                        NavigationBarItem(
+                            selected = isCurrentDestOnBackStack,
+                            onClick = {
+                                if (isCurrentDestOnBackStack) {
+                                    navigator.popBackStack(destination.direction, false)
+                                }
+                                navigator.navigate(destination.direction) {
+                                    popUpTo(NavGraphs.root) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                if (isCurrentDestOnBackStack) {
+                                    Icon(destination.iconSelected, stringResource(destination.label))
+                                } else {
+                                    Icon(destination.iconNotSelected, stringResource(destination.label))
+                                }
+                            },
+                            label = {
+                                Text(
+                                    text = stringResource(destination.label),
+                                    overflow = TextOverflow.Visible,
+                                    maxLines = 1,
+                                    softWrap = false
+                                )
+                            },
+                            alwaysShowLabel = false
                         )
-                    },
-                    alwaysShowLabel = false
-                )
+                    }
+                }
             }
         }
     }

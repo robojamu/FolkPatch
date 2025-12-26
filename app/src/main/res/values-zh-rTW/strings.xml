@@ -16,6 +16,14 @@
     <string name="kernel_patch">核心修補</string>
     <string name="android_patch">Android 修補</string>
 
+    <string name="settings_nav_layout_title">導航佈局設置</string>
+    <string name="settings_nav_layout_summary">隱藏或顯示導航的部分組件</string>
+    <string name="settings_show_apm">顯示系統模組</string>
+    <string name="settings_show_kpm">顯示核心模組</string>
+    <string name="settings_show_superuser">顯示超級用戶</string>
+    <string name="settings_disable_module_update_check">停用模組更新檢查</string>
+    <string name="settings_disable_module_update_check_summary">停用系統模組的自動更新檢查</string>
+
     <string name="reboot">重新啟動</string>
     <string name="settings">設定</string>
     <string name="reboot_recovery">重新啟動至 Recovery</string>
@@ -137,7 +145,7 @@
     <string name="su_selinux_via_hook">透過 Hook 忽略請求的方式</string>
     <string name="su_pkg_excluded_label">忽略</string>
     <string name="su_pkg_excluded_setting_title">排除修改</string>
-    <string name="su_pkg_excluded_setting_summary">啟用此選項將允許 APatch 還原此應用程式被模組修改的任何檔案。</string>
+    <string name="su_pkg_excluded_setting_summary">啟用此選項將允許 FolkPatch 還原此應用程式被模組修改的任何檔案。</string>
     <string name="su_batch_exclude_title">批次排除</string>
     <string name="su_batch_exclude_content">為全部非ROOT權限軟體排除注入，請選擇一個操作</string>
     <string name="su_exclude_btn">排除</string>
@@ -447,6 +455,7 @@
     <string name="settings_home_layout_style">首頁佈局樣式</string>
     <string name="settings_home_layout_default">ListUI</string>
     <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
     <string name="unofficial_version_title">非官方版本</string>
     <string name="unofficial_version_message">你使用的FreePatch並不是官方渠道下載的正版APP,請下載正版APP使用!</string>
     <string name="go_to_github">前往 Github</string>
@@ -493,6 +502,7 @@
     <string name="theme_store_title">主題商店</string>
     <string name="theme_source_official">官方</string>
     <string name="theme_source_third_party">第三方</string>
+    <string name="theme_source_local">本地</string>
     <string name="theme_store_author">作者: %s</string>
     <string name="theme_store_version">版本: %s</string>
     <string name="theme_source">來源</string>
@@ -589,4 +599,8 @@
     <string name="app_list_loading_scheme_root_service">RootService (預設)</string>
     <string name="app_list_loading_scheme_package_manager">PackageManager (系統 API)</string>
     <string name="app_list_loading_scheme_dialog_title">載入方案</string>
+    <string name="su_backup_list">備份列表</string>
+    <string name="su_restore_list">還原列表</string>
+    <string name="backup_success">備份成功</string>
+    <string name="restore_success">還原成功</string>
 </resources>

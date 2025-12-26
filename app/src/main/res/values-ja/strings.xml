@@ -11,6 +11,15 @@
     <string name="patch">パッチ</string>
     <string name="kernel_patch">KernelPatch</string>
     <string name="android_patch">AndroidPatch</string>
+
+    <string name="settings_nav_layout_title">ナビゲーションレイアウト設定</string>
+    <string name="settings_nav_layout_summary">ナビゲーションの一部のコンポーネントを非表示または表示</string>
+    <string name="settings_show_apm">APMを表示</string>
+    <string name="settings_show_kpm">KPMを表示</string>
+    <string name="settings_show_superuser">スーパーユーザーを表示</string>
+    <string name="settings_disable_module_update_check">モジュール更新チェックを無効化</string>
+    <string name="settings_disable_module_update_check_summary">システムモジュールの自動更新チェックを無効化する</string>
+
     <string name="reboot">再起動</string>
     <string name="settings">設定</string>
     <string name="reboot_recovery">リカバリーへ再起動</string>
@@ -119,7 +128,7 @@
     <string name="su_selinux_via_hook">フックによるバイパス</string>
     <string name="su_pkg_excluded_label">除外</string>
     <string name="su_pkg_excluded_setting_title">変更の除外</string>
-    <string name="su_pkg_excluded_setting_summary">このオプションを有効にすると、APatch はこのアプリのモジュールによって変更されたすべてのファイルを復元できるようになります。</string>
+    <string name="su_pkg_excluded_setting_summary">このオプションを有効にすると、FolkPatch はこのアプリのモジュールによって変更されたすべてのファイルを復元できるようになります。</string>
     <string name="su_batch_exclude_title">一括除外</string>
     <string name="su_batch_exclude_content">非rootアプリの注入を一括で除外します。操作を選択してください</string>
     <string name="su_exclude_btn">除外</string>
@@ -410,6 +419,7 @@
     <string name="settings_home_layout_style">ホームレイアウトスタイル</string>
     <string name="settings_home_layout_default">ListUI</string>
     <string name="settings_home_layout_grid">GridUI</string>
+    <string name="settings_home_layout_focus">FocusUI</string>
     <string name="unofficial_version_title">非公式バージョン</string>
     <string name="unofficial_version_message">使用している FreePatch は公式アプリではありません。公式アプリをダウンロードしてください！</string>
     <string name="go_to_github">Github へ移動</string>
@@ -455,6 +465,7 @@
     <string name="theme_store_title">テーマストア</string>
     <string name="theme_source_official">公式</string>
     <string name="theme_source_third_party">サードパーティ</string>
+    <string name="theme_source_local">ローカル</string>
     <string name="theme_store_author">作者: %s</string>
     <string name="theme_store_version">バージョン: %s</string>
     <string name="theme_source">出典</string>
@@ -555,5 +566,10 @@
     <string name="app_list_loading_scheme_root_service">RootService (デフォルト)</string>
     <string name="app_list_loading_scheme_package_manager">PackageManager (システム API)</string>
     <string name="app_list_loading_scheme_dialog_title">読み込みスキーム</string>
+
+    <string name="su_backup_list">バックアップリスト</string>
+    <string name="su_restore_list">復元リスト</string>
+    <string name="backup_success">バックアップ成功</string>
+    <string name="restore_success">復元成功</string>
 
 </resources>
