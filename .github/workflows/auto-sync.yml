@@ -2,47 +2,55 @@ name: 每日自动同步检测
 
 on:
   schedule:
-    - cron: '0 18 * * *'
+    - cron: '0 18 * * *'  # 每天UTC 18:00 = 北京时间02:00
   workflow_dispatch:
 
 jobs:
-  check-updates:
+  sync:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 检出仓库代码
+      # 1. 获取代码
+      - name: 检出代码
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: 检测更新
+      # 2. 检查是否有更新
+      - name: 检查对方更新
         id: check
         run: |
-          git remote add upstream https://github.com/matsuzaka-yuki/FolkPatch.git 2>/dev/null || true
-          git fetch upstream
+          # 添加远程仓库
+          git remote add matsuzaka https://github.com/matsuzaka-yuki/FolkPatch.git 2>/dev/null || true
           
+          # 获取最新代码
+          git fetch matsuzaka
+          
+          # 比较提交
           LOCAL=$(git rev-parse HEAD)
-          UPSTREAM=$(git rev-parse upstream/main)
+          REMOTE=$(git rev-parse matsuzaka/main)
           
-          echo "本地最新: ${LOCAL:0:8}"
-          echo "对方最新: ${UPSTREAM:0:8}"
+          echo "本地: ${LOCAL:0:8}"
+          echo "远程: ${REMOTE:0:8}"
           
-          if [ "$LOCAL" = "$UPSTREAM" ]; then
-            echo "✅ 代码已是最新"
-            echo "has_updates=no" >> $GITHUB_OUTPUT
+          if [ "$LOCAL" = "$REMOTE" ]; then
+            echo "✅ 已是最新"
+            echo "has_updates=false" >> $GITHUB_OUTPUT
           else
-            echo "🔄 发现新更新！"
-            echo "has_updates=yes" >> $GITHUB_OUTPUT
-            echo "new_commit=$UPSTREAM" >> $GITHUB_OUTPUT
+            echo "🔄 发现更新"
+            echo "has_updates=true" >> $GITHUB_OUTPUT
           fi
       
-      - name: 创建同步PR
-        if: steps.check.outputs.has_updates == 'yes'
+      # 3. 如果有更新，创建PR
+      - name: 创建Pull Request
+        if: steps.check.outputs.has_updates == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: sync-$(date +%Y%m%d)
+          branch: "sync-$(date +%Y%m%d)"  # 修复这里！
           title: "🔄 自动同步更新"
           body: |
             检测到 [matsuzaka-yuki/FolkPatch](https://github.com/matsuzaka-yuki/FolkPatch) 有新的提交。
             
-            请手动审查后合并。
-          labels: auto-sync
+            请审查后手动合并。
+          labels: "auto-sync"
