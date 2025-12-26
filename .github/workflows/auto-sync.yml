@@ -1,0 +1,66 @@
+name: 每日自动同步检测
+
+on:
+  # 每天北京时间凌晨2点运行（UTC时间18:00）
+  schedule:
+    - cron: '0 18 * * *'
+  # 允许手动点击运行
+  workflow_dispatch:
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 获取你的代码
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
+      
+      # 2. 检查对方仓库更新
+      - name: 检测 matsuzaka-yuki 的更新
+        id: check
+        run: |
+          # 添加远程仓库
+          git remote add upstream https://github.com/matsuzaka-yuki/FolkPatch.git 2>/dev/null || true
+          
+          # 获取最新代码
+          git fetch upstream
+          
+          # 比较提交差异
+          LOCAL=$(git rev-parse HEAD)
+          UPSTREAM=$(git rev-parse upstream/main)
+          
+          echo "本地最新: ${LOCAL:0:8}"
+          echo "对方最新: ${UPSTREAM:0:8}"
+          
+          if [ "$LOCAL" = "$UPSTREAM" ]; then
+            echo "✅ 代码已是最新"
+            echo "has_updates=no" >> $GITHUB_OUTPUT
+          else
+            echo "🔄 发现新更新！"
+            echo "has_updates=yes" >> $GITHUB_OUTPUT
+            echo "new_commit=$UPSTREAM" >> $GITHUB_OUTPUT
+            echo "commit_count=$(git rev-list --count HEAD..upstream/main)" >> $GITHUB_OUTPUT
+          fi
+      
+      # 3. 如果有更新，创建Pull Request
+      - name: 创建同步PR
+        if: steps.check.outputs.has_updates == 'yes'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: sync-$(date +%Y%m%d)
+          title: "🔄 自动同步更新 [$(date +'%m-%d')]"
+          body: |
+            检测到 [matsuzaka-yuki/FolkPatch](https://github.com/matsuzaka-yuki/FolkPatch) 有新的提交。
+            
+            **新提交哈希：** `${{ steps.check.outputs.new_commit }}`
+            **新提交数量：** ${{ steps.check.outputs.commit_count }} 个
+            
+            **请操作：**
+            1. 点击下方 "Files changed" 查看具体修改
+            2. 确认无误后点击 "Merge pull request"
+            3. 如有冲突需手动解决
+            
+            *本PR由GitHub Actions自动创建*
+          labels: "auto-sync"
