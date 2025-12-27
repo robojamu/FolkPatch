@@ -1,4 +1,3 @@
-
 - name: 检查对方更新
   id: check
   run: |
@@ -12,8 +11,11 @@
     LOCAL=$(git rev-parse HEAD)
     REMOTE=$(git rev-parse matsuzaka/main)
     
-    echo "本地提交: $LOCAL"
-    echo "远程提交: $REMOTE"
+    echo "本地提交完整哈希: $LOCAL"
+    echo "远程提交完整哈希: $REMOTE"
+    echo ""
+    echo "本地提交(简短): ${LOCAL:0:8}"
+    echo "远程提交(简短): ${REMOTE:0:8}"
     
     # 详细比较
     if [ "$LOCAL" = "$REMOTE" ]; then
