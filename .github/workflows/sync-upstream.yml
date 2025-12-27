@@ -1,0 +1,30 @@
+name: Daily Sync Upstream (Auto Create PR)
+
+on:
+  schedule:
+    - cron: '0 18 * * *'  # UTC 18:00 = 北京时间凌晨 2:00（全年有效）
+  workflow_dispatch:      # 支持在 GitHub 页面手动触发测试
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync from upstream
+        uses: tgymnich/fork-sync@v2.1
+        with:
+          owner: matsuzaka-yuki            # 上游用户名
+          repo: FolkPatch                  # 上游仓库名（可选，默认与当前仓库同名）
+          base: main                       # 你的目标分支
+          head: main                       # 上游分支
+          token: ${{ secrets.PAT || github.token }}
+          auto_approve: false              # 不自动批准
+          auto_merge: false                # 不自动合并（关键！让你手动操作）
+          pr_title: 'Sync upstream: Merge latest changes from matsuzaka-yuki/FolkPatch'
+          pr_message: |
+            🤖 自动检测到上游有新更新，已创建同步 PR。
+
+            请手动审阅变更后合并。
+
+            如果有冲突，请手动解决后合并。
+
+            上游仓库：https://github.com/matsuzaka-yuki/FolkPatch
