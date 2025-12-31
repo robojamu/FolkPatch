@@ -432,9 +432,9 @@
     <string name="apm_bulk_install_log_title">Registro de Instalación Masiva</string>
     <string name="apm_bulk_install_log_start">Iniciando instalación masiva...</string>
     <string name="apm_bulk_install_log_installing">Instalando %1$s</string>
-    <string name="apm_batch_install_full_process">Complete batch install process</string>
-    <string name="apm_batch_install_full_process_summary">System module batch installation is performed using the complete process</string>
-    <string name="next_module">Next module</string>
+    <string name="apm_batch_install_full_process">Proceso de instalación por lotes completo</string>
+    <string name="apm_batch_install_full_process_summary">Se realiza la instalación por lotes de módulos del sistema usando el proceso completo</string>
+    <string name="next_module">Siguiente módulo</string>
     <string name="apm_bulk_install_log_installed">Módulo %s instalado.</string>
     <string name="apm_bulk_install_log_done">Todas las operaciones completadas.</string>
     <string name="apm_bulk_install_first_use_text">Esta función te permite instalar múltiples módulos a la vez. Es un método rápido adecuado para módulos que no requieren operaciones de teclas durante la instalación. Para módulos que requieren interacciones con teclas de volumen, por favor activa el modo de instalación completa en la configuración.</string>
